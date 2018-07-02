@@ -1,4 +1,4 @@
-# nuagemot
+# Nuage-mot
 
 ### Lexique des effets
 
@@ -8,6 +8,4 @@
 'z' -> fuir vers le haut
 'e' -> créer des nuages
 ```
-
-
 
