@@ -12,7 +12,7 @@ function Particle(_whiteID){
     this.taille = int(random(2,10));
     this.escapeConfig = round(random(3));
 
-    switch (this.escapeConfig) {
+    /*switch (this.escapeConfig) {
         case 0 :
             this.escapePosX = -10;
             this.escapePosY = int(random(height));
@@ -33,7 +33,7 @@ function Particle(_whiteID){
             this.escapePosX = int(random(width));
             this.escapePosY = height+10;
             break;
-    }
+    }*/
 
     this.move = function(iterations){
 
@@ -56,10 +56,10 @@ function Particle(_whiteID){
             this.posTarget.y = this.whitePosY+random(-10,10);
         }
 
-        if (isEscape) {
+        /*if (isEscape) {
             this.posTarget.x = this.escapePosX;
             this.posTarget.y = this.escapePosY;
-        }
+        }*/
 
     }
 
@@ -87,7 +87,7 @@ function Particle(_whiteID){
 
     this.display = function(r) {
 
-        ellipse(this.pos.x, this.pos.y, r+this.taille/r, r+this.taille/r);
+        ellipse(this.pos.x, this.pos.y, r/*+this.taille/r*/, r/*+this.taille/r*/);
 
     }
 

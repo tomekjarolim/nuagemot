@@ -17,7 +17,7 @@ var transpBGTarget = 255;
 var transp = 255;
 var transpTarget = 255;
 var easing = .1;
-var easing2 = .01;
+var easing2 = .1;
 var img;
 var myPixels = []; 
 var startTimer;
@@ -63,6 +63,8 @@ function initSketch() {
 
 // draw skecth
 function drawSketch() {
+
+    getSound();
 
     translate(-width/2,-height/2,0);
 
@@ -143,4 +145,9 @@ function drawSketch() {
     transp += (transpTarget-transp) * easing2;
     transpBG += (transpBGTarget-transpBG) * easing2;
 
+}
+
+function getSound() {
+    radiusTarget = map(amp, 0, 1, 1, 80, true);
+    transpBGTarget = map(centroid, 3000, 8000, 255, 5);
 }
