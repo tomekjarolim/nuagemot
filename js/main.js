@@ -1,12 +1,18 @@
+const micOn = true;
+
 function preload() {
-	preloadSketch();
+    preloadSketch();
+    preloadSounds();
 }
 
 function setup() {
-	initSketch();
+    initSketch();
+    audioSetup();
 }
 
 function draw() {
+    drawSketch();
+    audioLoop();
 }
 
 function mousePressed() {
