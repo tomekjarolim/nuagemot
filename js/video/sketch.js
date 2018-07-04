@@ -4,7 +4,7 @@ var nums;
 var particleDensity = 4000;
 var noiseScale = 800;
 var maxLife = 10;
-var maxSpeed = 0.4;
+var maxSpeed = 10;
 var simulationSpeed = 0.2;
 var fadeFrame = 0;
 var backgroundColor;
@@ -32,114 +32,115 @@ var isEscape = false;
 // preaload images
 function preloadSketch() {
 
-  img = loadImage('js/assets/hello.png');
+    img = loadImage('js/assets/hello.png');
 
 }
 
 // initial settings
 function initSketch() {
 
-  noStroke();
-  nums = 150;
-  backgroundColor = color(0);
+    nums = 750;
+    backgroundColor = color(0);
 
-  createCanvas(windowWidth, windowHeight);
-  background(backgroundColor);
+    createCanvas(windowWidth, windowHeight, WEBGL);
+    background(backgroundColor);
 
-  for (var i=0; i<img.width; i++) {
-    for (var j=0; j<img.height; j++) {
-      var c = img.get(i, j);
-      if (red(c) == 255) {
-        myPixels.push(new WhitePixels(i, j));
-      }
+    for (var i=0; i<img.width; i++) {
+        for (var j=0; j<img.height; j++) {
+            var c = img.get(i, j);
+            if (red(c) == 255) {
+                myPixels.push(new WhitePixels(i, j));
+            }
+        }
     }
-  }
 
-  // for (var i=0; i<myPixels.length; i++) console.log(myPixels[i].x);
-  for(var i = 0; i < nums; i++){
-    particles[i] = new Particle(int(random(myPixels.length)));
-  }
+    // for (var i=0; i<myPixels.length; i++) console.log(myPixels[i].x);
+    for(var i = 0; i < nums; i++){
+        particles[i] = new Particle(int(random(myPixels.length)));
+    }
 
 }
 
 // draw skecth
 function drawSketch() {
 
-  console.log(mouseX+"  "+mouseY);
+    translate(-width/2,-height/2,0);
 
-  if (keyIsPressed) {
+    if (keyIsPressed) {
 
-    if (key == ' ') {
-      for(var i = 0; i < nums; i++) {
-        particles[i].posTarget.x = width/2;
-        particles[i].posTarget.y = height/2;
-        particles[i].pos.x = width/2;
-        particles[i].pos.y = height/2;
-        background(0);
-      }
+        if (key == ' ') {
+            for(var i = 0; i < nums; i++) {
+                particles[i].posTarget.x = width/2;
+                particles[i].posTarget.y = height/2;
+                particles[i].pos.x = width/2;
+                particles[i].pos.y = height/2;
+                background(0);
+            }
+        }
+
+        if (key == 'z') {
+            isEscape = true;
+            startTimer = millis();
+        }
+
+        if (key == 'a') {
+            isWord = true;
+            startTimer = millis();
+        }
+
+        if (key == 'e') {
+            isEscape = true;
+            //isCloud = true;
+        }
+
+        if (key == 'E') {
+            //isCloud = false;
+        }
+
     }
 
-    if (key == 'z') {
-      isEscape = true;
-      startTimer = millis();
+    if (isWord) {
+
+        if (millis()-startTimer > 5000) isWord = false;
+
     }
 
-    if (key == 'a') {
-      isWord = true;
-      startTimer = millis();
+    if (isEscape) {
+
+        if (millis()-startTimer > 5000) isEscape = false;
+
     }
 
-    if (key == 'e') {
-      isCloud = true;
-    }
+    noStroke();
+    fill(0,transpBG);
+    rect(0,0,width,height);
 
-    if (key == 'E') {
-      isCloud = false;
-    }
+    for(var i = 0; i < nums; i++) {
 
-  }
-
-  if (isWord) {
-
-    if (millis()-startTimer > 5000) isWord = false;
-
-  }
-
-  if (isEscape) {
-
-    if (millis()-startTimer > 5000) isEscape = false;
-
-  }
-  
-  fill(0,/*transpBG*/10);
-  rect(0,0,width,height);
-
-  for(var i = 0; i < nums; i++) {
-
-    var iterations = map(i,0,nums,5,1);
-    
-    particles[i].move(iterations);
-    particles[i].checkEdge();
-    
-    var particleColor;
-    var fadeRatio;
-    fadeRatio = min(particles[i].life * 5 / maxLife, 1);
-    fadeRatio = min((maxLife - particles[i].life) * 5 / maxLife, fadeRatio);
-
-    var lifeRatioGrayscale = min(255, (255 * particles[i].life / maxLife) + red(backgroundColor));
-    particleColor = color(255, alpha * fadeRatio);
+        var iterations = map(i,0,nums,5,1);
         
-    fill(red(particleColor), green(particleColor), blue(particleColor), transp * fadeRatio);
-    particles[i].display(radius);
-    //if (i==0) console.log("val : "+particles[i].angleT+" | "+particles[i].angleMinT);
+        particles[i].move(iterations);
+        particles[i].checkEdge();
+        
+        var particleColor;
+        var fadeRatio;
+        fadeRatio = min(particles[i].life * 5 / maxLife, 1);
+        fadeRatio = min((maxLife - particles[i].life) * 5 / maxLife, fadeRatio);
 
-    particles[i].pos.x = particles[i].pos.x + ((particles[i].posTarget.x - particles[i].pos.x) * 0.1);
-    particles[i].pos.y = particles[i].pos.y + ((particles[i].posTarget.y - particles[i].pos.y) * 0.1);
+        var lifeRatioGrayscale = min(255, (255 * particles[i].life / maxLife) + red(backgroundColor));
+        particleColor = color(255, alpha * fadeRatio);
+            
+        fill(red(particleColor), green(particleColor), blue(particleColor), transp * fadeRatio);
+        particles[i].display(radius);
+        //if (i==0) console.log("val : "+particles[i].angleT+" | "+particles[i].angleMinT);
 
-  } 
+        particles[i].pos.x = particles[i].pos.x + ((particles[i].posTarget.x - particles[i].pos.x) * 0.1);
+        particles[i].pos.y = particles[i].pos.y + ((particles[i].posTarget.y - particles[i].pos.y) * 0.1);
 
-  radius += (radiusTarget-radius) * easing2;
-  transp += (transpTarget-transp) * easing2;
-  transpBG += (transpBGTarget-transpBG) * easing2;
+    } 
+
+    radius += (radiusTarget-radius) * easing2;
+    transp += (transpTarget-transp) * easing2;
+    transpBG += (transpBGTarget-transpBG) * easing2;
 
 }

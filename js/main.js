@@ -1,13 +1,13 @@
 function preload() {
-  preloadSketch();
+	preloadSketch();
 }
 
 function setup() {
-  initSketch();
+	initSketch();
 }
 
 function draw() {
-  drawSketch();
+	drawSketch();
 }
 
 function mousePressed() {
@@ -23,9 +23,8 @@ function mouseMoved() {
   /*for(var i = 0; i < nums; i++) {
     particles[i].posTarget.x -=4;
   }*/
-  //transpBGTarget = map(mouseX, 0, width, 255, 5);
+	transpBGTarget = map(mouseY, 0, height, 255, 5);
   //radiusTarget = map(mouseY, 0, height, 2, 15);
-
-  //simulationSpeed = map(mouseX, 0, width, 0.1, maxSpeed);
-
+	maxSpeed = map(mouseX, width/10, width*9/10, 10, 0.4, true);
+	simulationSpeed = map(mouseX, width/10, width*9/10, 0.1, maxSpeed, true);
 }
