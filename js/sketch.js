@@ -30,7 +30,7 @@ var isCloud = false;
 
 function preload() {
 
-  img = loadImage('assets/hello.png');
+  img = loadImage('js/assets/hello.png');
 
 }
 
@@ -73,7 +73,8 @@ function setup(){
 
 
 
-function draw() {  
+function draw() {
+
 
   if (keyIsPressed) {
 
