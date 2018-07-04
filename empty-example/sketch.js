@@ -10,8 +10,8 @@ var numModes = 4;
 var invertColors = false;
 var radius = 2;
 var radiusTarget = 2;
-var transpBG = 10;
-var transpBGTarget = 10;
+var transpBG = 255;
+var transpBGTarget = 255;
 var transp = 255;
 var transpTarget = 255;
 var easing = .1;
@@ -20,12 +20,13 @@ var img;
 var myPixels = []; 
 var startTimer;
 
-var isClicked;
-var isEscape;
+
+// position booleans
+var isBacteria = true;
+var isWord = false;
 var isCloud = false;
-
-
-
+var isVanGogh = false;
+var isEscape = false;
 
 
 function preload() {
@@ -38,11 +39,11 @@ function preload() {
 
 
 
-function setup(){
+function setup() {
 
   noStroke();
 
-  nums = 750;
+  nums = 150;
 
   backgroundColor = color(0);
 
@@ -99,7 +100,7 @@ function draw() {
     }
 
     if (key == 'a') {
-      isClicked = true;
+      isWord = true;
       startTimer = millis();
     }
 
@@ -113,52 +114,20 @@ function draw() {
 
   }
 
-  if (isClicked) {
+  if (isWord) {
 
-    radiusTarget = 4;
-    if (millis()-startTimer > 5000) isClicked = false;
+    if (millis()-startTimer > 5000) isWord = false;
 
-  } else radiusTarget = 2;
+  }
 
   if (isEscape) {
 
     if (millis()-startTimer > 5000) isEscape = false;
 
   }
-
-  if (isCloud) {
-
-    radiusTarget = 200;
-    transpTarget = 2;
-    transpBGTarget = 255;
-
-  } else {
-
-    radiusTarget-=1;
-    //transpTarget = 255; 
-    transpBGTarget = 10;
-
-  }
   
-  //++fadeFrame;
 
-  /*if(fadeFrame % 1 == 0){
-
-    blendMode(DIFFERENCE);
-    
-    fill(1);
-    rect(0,0,width,height);
-
-    blendMode(LIGHTEST);
-    fill(backgroundColor);
-    rect(0,0,width,height);
-
-  }
-  
-  blendMode(BLEND);*/
-
-  //fill(0,transpBGTarget);
-  fill(0);
+  fill(0,transpBG);
   rect(0,0,width,height);
   //smooth();
 
@@ -181,7 +150,6 @@ function draw() {
         
     fill(red(particleColor), green(particleColor), blue(particleColor), transp * fadeRatio);
     particles[i].display(radius);
-
 
     particles[i].pos.x = particles[i].pos.x + ((particles[i].posTarget.x - particles[i].pos.x) * 0.1);
     particles[i].pos.y = particles[i].pos.y + ((particles[i].posTarget.y - particles[i].pos.y) * 0.1);
@@ -224,7 +192,7 @@ function Particle(_whiteID){
 
   this.move = function(iterations){
 
-    if (!isClicked && !isEscape) {
+    if (!isWord && !isEscape) {
 
       if((this.life -= 0.01666) < 0)
         this.respawn();
@@ -240,7 +208,7 @@ function Particle(_whiteID){
 
     }
 
-    if (isClicked) {
+    if (isWord) {
 
       this.posTarget.x = this.whitePosX+random(-10,10);
       this.posTarget.y = this.whitePosY+random(-10,10);
@@ -260,7 +228,7 @@ function Particle(_whiteID){
 
   this.checkEdge = function(){
 
-    if (!isClicked) {
+    if (!isWord) {
       if(this.posTarget.x > width || this.posTarget.x < 0 || this.posTarget.y > height || this.posTarget.y < 0){
         this.respawn();
       }
@@ -270,7 +238,7 @@ function Particle(_whiteID){
   
   this.respawn = function(){
 
-    if (!isClicked) {
+    if (!isWord) {
       this.posTarget.x = random(0, width);
       this.posTarget.y = random(0, height);
       this.pos.x = this.posTarget.x;
@@ -282,7 +250,7 @@ function Particle(_whiteID){
 
   this.display = function(r) {
 
-    ellipse(this.pos.x, this.pos.y, /*this.taille, this.taille*/r+this.taille, r+this.taille);
+    ellipse(this.pos.x, this.pos.y, r+this.taille/r, r+this.taille/r);
 
   }
 
@@ -292,8 +260,6 @@ function Particle(_whiteID){
 
 
 function mousePressed() {
-  //radiusTarget = 4;
-  //isClicked = true;
 
 }
 
@@ -301,23 +267,22 @@ function mousePressed() {
 
 
 function mouseReleased() {
-  //radiusTarget = 2;
-  //isClicked = false;
+
 }
 
 
 
 
 function keyPressed() {
-  //console.log("a");//isClicked = true;
 }
 
 
 
 function mouseMoved() {
-  for(var i = 0; i < nums; i++) {
-    //background(0);
+  /*for(var i = 0; i < nums; i++) {
     particles[i].posTarget.x -=4;
-    //particles[i].posTarget.y = mouseY;
-  }
+  }*/
+  transpBGTarget = map(mouseX, 0, width, 255, 5);
+  radiusTarget = map(mouseY, 0, height, 2, 15);
+
 }
