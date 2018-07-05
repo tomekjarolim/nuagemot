@@ -12,7 +12,7 @@ function setup() {
 
 function draw() {
     drawSketch();
-    audioLoop();
+    //audioLoop();
 }
 
 function mousePressed() {
