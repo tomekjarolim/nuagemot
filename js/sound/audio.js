@@ -52,7 +52,7 @@ function gotSpeech() {
 		// Speech rec confidence value, between 0 and 1
 		confidence = speechRec.resultConfidence;
 		wordsArray.push(speechRec.resultString);
-		console.log(wordsArray.length);
+		//console.log(wordsArray.length);
 	}
 }
 
