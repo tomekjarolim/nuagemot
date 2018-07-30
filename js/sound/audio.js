@@ -10,11 +10,14 @@ let confidence = 0.0;
 const playMode = 'sustain'; // Allow overlapping players with a single audio buffer
 let speechRec;
 let wordsArray = [];
-const audioPollFreq = 200; // ms
+const audioPollFreq = 10; // ms
+let duration = 0.200; // Duration is in seconds
+let density = 15;     // ms
+let soundFile;
 
 // Called from preload() in main.js
 function preloadSounds() {
-	whispers = loadSound('js/assets/whispers.mp3');
+    whispers = loadSound('js/assets/whispers.mp3');
 }
 
 // Called from setup() in main.js
@@ -28,11 +31,14 @@ function audioSetup() {
 		speechRec.continuous = true; 
 		speechRec.interimResults = true;
 		speechRec.start();
-		// player
-		let metroPlayer = setInterval(playWhisper, 250);
 		// analyzer
 		fft = new p5.FFT();
 		audioAnalyser();
+        playWhisper();
+        // Recorder
+        recorder = new p5.SoundRecorder();
+        recorder.setInput(mic);
+        soundFile = new p5.SoundFile();
 	}
 }
 
@@ -40,10 +46,18 @@ function audioSetup() {
 function audioLoop() {
 }
 
-// Random granulation player, amplitude is controlled by mic input
+/*	Random granulation player, amplitude is controlled by mic input
+*
+*	TODO : Do not set the volume locally, it sounds weird:
+*		   Should the microphone control the master volume instead? 
+*
+*/
 function playWhisper() {
-	let offset = floor(random(0, 16) * 2);
-	whispers.play(0, 1, amp, offset, 1);
+    let offset = floor(random(0, 16) * 2); 
+	//let offset = floor(random(0, whispers.duration()));
+	whispers.play(0, 1, volume, offset, duration);
+
+    let metroPlayer = setTimeout(playWhisper, density);
 }
 
 // Speech rec callback function
@@ -60,30 +74,14 @@ function gotSpeech() {
 function audioAnalyser() {
 	if (micOn){
 		amp = mic.getLevel();
-		volume = mic.getLevel(0.7);
-		
+		volume = mic.getLevel(0.8);
 		fft.analyze();
 		centroid = fft.getCentroid();
 		bassEnergy = fft.getEnergy('bass');
 		midEnergy = fft.getEnergy('mid');
 		trebleEnergy = fft.getEnergy('treble');
-
 		//console.log("Bass: " + bassEnergy + "   " + "Mid: " + midEnergy + "   " + "Treble: " + trebleEnergy)
-
+		
 		let analyserRefresh = setTimeout(audioAnalyser, audioPollFreq);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

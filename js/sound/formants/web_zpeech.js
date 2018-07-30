@@ -19655,6 +19655,7 @@ function valueToPercent (value) {
   return value / 256;;
 }
 
+// DEFAULT VALUES (change to adapt to your voice):
 var greFormants = {
   i: [100, 3379],
   e: [430, 2336],
@@ -19687,8 +19688,9 @@ maybeMicrophone.then(function(mic){
     if (vowels[0]) {
       vowel = vowels[0].slice(0,1);
       vowel = vowel.toString();
+      //// Uncomment the next two lines to log vowel recognition
       //if (vowel != oldVowel) console.log(vowel);
-      //oldVowel = vowel;      
+      //oldVowel = vowel;
     }
   }, REFRESH_RATE);
 });
