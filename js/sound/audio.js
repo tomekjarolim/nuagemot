@@ -14,6 +14,7 @@ const audioPollFreq = 10; // ms
 let duration = 0.200; // Duration is in seconds
 let density = 15;     // ms
 let soundFile;
+let recognizedWords;
 
 // Called from preload() in main.js
 function preloadSounds() {
@@ -26,15 +27,26 @@ function audioSetup() {
 		// input
 		mic = new p5.AudioIn();
 		mic.start();
+		// output 
+		master = new p5.Gain();
+		master.connect(); 
 		// speech recognition
-		speechRec = new p5.SpeechRec('fr-FR', gotSpeech);
-		speechRec.continuous = true; 
-		speechRec.interimResults = true;
-		speechRec.start();
+		if (speechRecOn) {
+			speechRec = new p5.SpeechRec('fr-FR', gotSpeech);
+			speechRec.continuous = true; 
+			speechRec.interimResults = true;
+			speechRec.start();
+			speechRec.onEnd = () => speechRec.start();
+			resetRec = setInterval(() => speechRec.abort(), 5000);
+		}
 		// analyzer
 		fft = new p5.FFT();
 		audioAnalyser();
-        playWhisper();
+		// Player
+		whispers.disconnect();
+		granulationGain = new p5.Gain();
+		granulationGain.setInput(whispers);
+		playWhisper();
         // Recorder
         recorder = new p5.SoundRecorder();
         recorder.setInput(mic);
@@ -65,8 +77,10 @@ function gotSpeech() {
 	if (speechRec.resultValue) {
 		// Speech rec confidence value, between 0 and 1
 		confidence = speechRec.resultConfidence;
-		wordsArray.push(speechRec.resultString);
+		recognizedWords = speecRec.resultString; 
+		//wordsArray.push(speechRec.resultString);
 		//console.log(wordsArray.length);
+		//console.log(speechRec.resultString);
 	}
 }
 

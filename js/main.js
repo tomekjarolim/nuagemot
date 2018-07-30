@@ -3,24 +3,29 @@
 *   AUDIO VARIABLES : 
 *
 *
-*   amp            // [0.0-1.0]     =>   Microphone realtime amplitude
-*   centroid       // [0.0-~15000]  =>   Spectral centroid 
-*                                        Not an indicator of the average pitch of voice
-*                                        Useful as a speech dynamics analyser
-*   bassEnergy     // [0.0-255]        
-*   midEnergy      // [0.0-255]        
-*   trebleEnergy   // [0.0-255]        
+*   amp             // [0.0-1.0]     =>   Microphone realtime amplitude
+*   centroid        // [0.0-~15000]  =>   Spectral centroid 
+*                                         Not an indicator of the average pitch of voice
+*                                         Useful as a speech dynamics analyser
+*   bassEnergy      // [0.0-255]        
+*   midEnergy       // [0.0-255]        
+*   trebleEnergy    // [0.0-255]        
 *
-*   vowel          // ['i', 'e',    
-*                      'u', 'a',
-*                      'o', 'œ']    =>   Not accessible yet (browserify issue)
-*                                        Uncomment line 19691 and 19692 of 
-*                                        ./sounds/formants/web_zspeech.js to log the vowels
+*   vowel           // ['i', 'e',    
+*                       'u', 'a',
+*                       'o', 'œ']    =>   Not accessible yet (browserify issue)
+*                                         Uncomment line 19691 and 19692 of 
+*                                         ./sounds/formants/web_zspeech.js to log the vowels
+*                                         
+*   recognizedWords // [string]      =>   !!EXPERIMENTAL!! (May crash if used for too long)
+*                                         Continuous stream of words and sentences recognized   
+*                                         SpeechRecOn must be set to true
 *
 */
 
 const micOn = true;
-let recordState = 0; 
+const speechRecOn = false;
+let recordState = 0;
 
 function preload() {
     preloadSketch();
