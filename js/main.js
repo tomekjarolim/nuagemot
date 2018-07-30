@@ -11,11 +11,9 @@
 *   midEnergy       // [0.0-255]        
 *   trebleEnergy    // [0.0-255]        
 *
-*   vowel           // ['i', 'e',    
+*   vowel           // ['i', 'e',          
 *                       'u', 'a',
-*                       'o', 'œ']    =>   Not accessible yet (browserify issue)
-*                                         Uncomment line 19691 and 19692 of 
-*                                         ./sounds/formants/web_zspeech.js to log the vowels
+*                       'o', 'œ']    =>   No internet connexion needed, but results depend on your voice
 *                                         
 *   recognizedWords // [string]      =>   !!EXPERIMENTAL!! (May crash if used for too long)
 *                                         Continuous stream of words and sentences recognized   

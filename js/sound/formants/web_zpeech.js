@@ -19675,7 +19675,7 @@ _.each(formantsParams, function (f, v) {
 });
 
 var formants = [];
-var vowel;
+//var vowel;
 var oldVowel;
 
 maybeMicrophone.then(function(mic){
@@ -19688,9 +19688,8 @@ maybeMicrophone.then(function(mic){
     if (vowels[0]) {
       vowel = vowels[0].slice(0,1);
       vowel = vowel.toString();
-      //// Uncomment the next two lines to log vowel recognition
-      //if (vowel != oldVowel) console.log(vowel);
-      //oldVowel = vowel;
+      if (vowel != oldVowel) window.v = vowel;
+      oldVowel = vowel;
     }
   }, REFRESH_RATE);
 });

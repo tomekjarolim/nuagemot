@@ -10,11 +10,16 @@ let confidence = 0.0;
 const playMode = 'sustain'; // Allow overlapping players with a single audio buffer
 let speechRec;
 let wordsArray = [];
-const audioPollFreq = 10; // ms
-let duration = 0.200; // Duration is in seconds
-let density = 15;     // ms
+const audioPollFreq = 20; // ms
+let duration = 0.250;     // Duration is in seconds
+let density = 30;         // ms
 let soundFile;
 let recognizedWords;
+let master = new p5.Gain();
+let granulationGain = new p5.Gain();
+let micGain = 10; // You may need to increase it if your microphone isn't sensitive enough
+window.v;
+let vowel = '';
 
 // Called from preload() in main.js
 function preloadSounds() {
@@ -23,13 +28,14 @@ function preloadSounds() {
 
 // Called from setup() in main.js
 function audioSetup() {
-	if (micOn) {
+	if (micOn) {  
 		// input
 		mic = new p5.AudioIn();
 		mic.start();
 		// output 
-		master = new p5.Gain();
-		master.connect(); 
+		//master = new p5.Gain();
+		master.connect();
+		master.amp(1, 0.5, 0); 
 		// speech recognition
 		if (speechRecOn) {
 			speechRec = new p5.SpeechRec('fr-FR', gotSpeech);
@@ -44,8 +50,9 @@ function audioSetup() {
 		audioAnalyser();
 		// Player
 		whispers.disconnect();
-		granulationGain = new p5.Gain();
+		//granulationGain = new p5.Gain();
 		granulationGain.setInput(whispers);
+		granulationGain.connect(master);
 		playWhisper();
         // Recorder
         recorder = new p5.SoundRecorder();
@@ -58,16 +65,11 @@ function audioSetup() {
 function audioLoop() {
 }
 
-/*	Random granulation player, amplitude is controlled by mic input
-*
-*	TODO : Do not set the volume locally, it sounds weird:
-*		   Should the microphone control the master volume instead? 
-*
-*/
+//	Random granulation player, amplitude is controlled by mic input
 function playWhisper() {
     let offset = floor(random(0, 16) * 2); 
 	//let offset = floor(random(0, whispers.duration()));
-	whispers.play(0, 1, volume, offset, duration);
+	whispers.play(0, 1, 1, offset, duration);
 
     let metroPlayer = setTimeout(playWhisper, density);
 }
@@ -88,14 +90,15 @@ function gotSpeech() {
 function audioAnalyser() {
 	if (micOn){
 		amp = mic.getLevel();
-		volume = mic.getLevel(0.8);
+		granulationGain.amp(amp * micGain, 0.1, 0);
 		fft.analyze();
 		centroid = fft.getCentroid();
 		bassEnergy = fft.getEnergy('bass');
 		midEnergy = fft.getEnergy('mid');
 		trebleEnergy = fft.getEnergy('treble');
 		//console.log("Bass: " + bassEnergy + "   " + "Mid: " + midEnergy + "   " + "Treble: " + trebleEnergy)
-		
+		if (typeof window.v !== "undefined") vowel = window.v;
+
 		let analyserRefresh = setTimeout(audioAnalyser, audioPollFreq);
 	}
 }
