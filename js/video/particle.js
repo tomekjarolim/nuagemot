@@ -3,37 +3,37 @@ function Particle(_whiteID){
     this.vel = createVector(0, 0);
     this.posTarget = createVector(width/2, height/2);
     this.pos = createVector(this.posTarget.x, this.posTarget.y);
-    this.life = random(0, maxLife);
+    this.life = random(50, maxLife);
     this.flip = int(random(0,2)) * 2 - 1;
     this.whiteID = _whiteID;
-    this.whitePosX = myPixels[this.whiteID].x*4;
-    this.whitePosY = myPixels[this.whiteID].y*4;
+    this.whitePosX = random(myPixels[this.whiteID].x*scaleVal-5,myPixels[this.whiteID].x*scaleVal+5);
+    this.whitePosY = random(myPixels[this.whiteID].y*scaleVal-5,myPixels[this.whiteID].y*scaleVal+5);
     this.escape = int(random(3));
-    this.taille = int(random(2,10));
-    this.escapeConfig = round(random(3));
+    this.taille = int(random(1,5));
 
-    /*switch (this.escapeConfig) {
-        case 0 :
-            this.escapePosX = -10;
-            this.escapePosY = int(random(height));
-            break;
-        case 1 :
-            this.escapePosX = int(random(width));
-            this.escapePosY = -10;
-            break;
-        case 2 :
-            this.escapePosX = width+10;
-            this.escapePosY = int(random(height));
-            break;
-        case 3 :
-            this.escapePosX = int(random(width));
-            this.escapePosY = height+10;
-            break;
-        default :
-            this.escapePosX = int(random(width));
-            this.escapePosY = height+10;
-            break;
-    }*/
+    this.alpha = 255;
+    this.alphaTarget = 255;
+
+    this.zoomTaille = 0;
+    this.zoomTailleTarget = 0;
+
+    if (this.posTarget.x <= width/2) {
+        if (this.posTarget.y <= width/2) {
+            this.escapePosX = int(random(-10,width/2));
+            this.escapePosY = int(random(-10,height/2));
+        } else {
+            this.escapePosX = int(random(width)/2);
+            this.escapePosY = int(random(height/2,height+10));
+        }
+    } else {
+        if (this.posTarget.y <= width/2) {
+            this.escapePosX = int(random(width/2,width+10));
+            this.escapePosY = int(random(-10,height/2));
+        } else {
+            this.escapePosX = int(random(width/2,width+10));
+            this.escapePosY = int(random(height/2,height+10));
+        } 
+    }
 
     this.move = function(iterations){
 
@@ -56,16 +56,26 @@ function Particle(_whiteID){
             this.posTarget.y = this.whitePosY+random(-10,10);
         }
 
-        /*if (isEscape) {
+        if (isEscape) {
             this.posTarget.x = this.escapePosX;
             this.posTarget.y = this.escapePosY;
-        }*/
+        }
+
+        if (isWord) {
+            this.posTarget.x = this.whitePosX+random(-10,10);
+            this.posTarget.y = this.whitePosY+random(-10,10);
+        }
+
+        if (isEscape) {
+            this.posTarget.x = this.escapePosX;
+            this.posTarget.y = this.escapePosY;
+        }
 
     }
 
     this.checkEdge = function(){
 
-        if (!isWord) {
+        if (!isWord && !isEscape) {
             if(this.posTarget.x > width || this.posTarget.x < 0 || this.posTarget.y > height || this.posTarget.y < 0){
                 this.respawn();
             }
@@ -87,7 +97,13 @@ function Particle(_whiteID){
 
     this.display = function(r) {
 
-        ellipse(this.pos.x, this.pos.y, r/*+this.taille/r*/, r/*+this.taille/r*/);
+        push();
+        translate(0,0,int(random(zoom-2,zoom+2)));
+        stroke(255,transpBorder);
+        //noFill();
+        fill(255,this.alpha);
+        ellipse(this.pos.x, this.pos.y, r+this.taille/r+this.zoomTaille, r+this.taille/r+this.zoomTaille);
+        pop();
 
     }
 
