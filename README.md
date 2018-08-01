@@ -8,7 +8,9 @@
 'h' -> mot suivant
 'z' -> fuir vers le haut
 'p' -> créer des nuages
-'P' -> défaire le nuages
+'P' -> défaire les nuages
+'m' -> créer des lucioles
+'M' -> défaire les lucioles
 'o' -> mettre en cercle
 'q' -> grossir particules
 's' -> reduire particules
