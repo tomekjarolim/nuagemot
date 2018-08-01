@@ -354,6 +354,16 @@
     }
   };
 
+  /*
+  *     THIS IS A WRAPPING OF ABORT() FOR P5 SPEECH (denez)
+  *
+  */
+  p5.SpeechRec.prototype.abort = function() {
+    if('webkitSpeechRecognition' in window) {
+      this.rec.abort();
+    }
+  };
+
 }));
 
 /*
