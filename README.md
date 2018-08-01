@@ -5,7 +5,16 @@
 ```
 ' ' -> reinit
 'a' -> former le mot
+'h' -> mot suivant
 'z' -> fuir vers le haut
-'e' -> créer des nuages
+'p' -> créer des nuages
+'P' -> défaire le nuages
+'o' -> mettre en cercle
 ```
+### Lexique des mouvements
 
+```
+mouseX (move) -> rapidité de déplacement
+mouseY (move) -> opacité du fond
+mouseX (drag) -> translate des particules
+```
