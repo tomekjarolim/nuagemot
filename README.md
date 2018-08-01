@@ -10,6 +10,8 @@
 'p' -> créer des nuages
 'P' -> défaire le nuages
 'o' -> mettre en cercle
+'q' -> grossir particules
+'s' -> reduire particules
 ```
 ### Lexique des mouvements
 
