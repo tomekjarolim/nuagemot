@@ -12,14 +12,17 @@ let speechRec;
 let wordsArray = [];
 const audioPollFreq = 20; // ms
 let duration = 0.250;     // Duration is in seconds
-let density = 30;         // ms
+let density = 100;         // ms
+let rate = 1; 
 let soundFile;
 let recognizedWords;
 let master = new p5.Gain();
 let granulationGain = new p5.Gain();
-let micGain = 10; // You may need to increase it if your microphone isn't sensitive enough
-window.v;
+let micGain = 50; // You may need to increase it if your microphone isn't sensitive enough
+window.v; // global variable for vowels
 let vowel = '';
+window.y; // global variable for yin (wavesjs-lfo)
+let freq;
 
 // Called from preload() in main.js
 function preloadSounds() {
@@ -68,8 +71,9 @@ function audioLoop() {
 //	Random granulation player, amplitude is controlled by mic input
 function playWhisper() {
     let offset = floor(random(0, 16) * 2); 
-	//let offset = floor(random(0, whispers.duration()));
-	whispers.play(0, 1, 1, offset, duration);
+	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.9, 1.4);
+	//console.log(rate); 
+	whispers.play(0, rate, 1, offset, duration);
 
     let metroPlayer = setTimeout(playWhisper, density);
 }
@@ -79,10 +83,10 @@ function gotSpeech() {
 	if (speechRec.resultValue) {
 		// Speech rec confidence value, between 0 and 1
 		confidence = speechRec.resultConfidence;
-		recognizedWords = speecRec.resultString; 
+		recognizedWords = speechRec.resultString; 
 		//wordsArray.push(speechRec.resultString);
 		//console.log(wordsArray.length);
-		//console.log(speechRec.resultString);
+		console.log(speechRec.resultString);
 	}
 }
 
@@ -98,6 +102,7 @@ function audioAnalyser() {
 		trebleEnergy = fft.getEnergy('treble');
 		//console.log("Bass: " + bassEnergy + "   " + "Mid: " + midEnergy + "   " + "Treble: " + trebleEnergy)
 		if (typeof window.v !== "undefined") vowel = window.v;
+		if (window.y.pitch !== -1) freq = window.y.pitch;
 
 		let analyserRefresh = setTimeout(audioAnalyser, audioPollFreq);
 	}
