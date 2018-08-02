@@ -11,14 +11,14 @@ const playMode = 'sustain'; // Allow overlapping players with a single audio buf
 let speechRec;
 let wordsArray = [];
 const audioPollFreq = 20; // ms
-let duration = 0.250;     // Duration is in seconds
-let density = 100;         // ms
+let duration = 0.300;     // Duration is in seconds
+let density = 80;         // ms
 let rate = 1; 
 let soundFile;
 let recognizedWords;
 let master = new p5.Gain();
 let granulationGain = new p5.Gain();
-let micGain = 50; // You may need to increase it if your microphone isn't sensitive enough
+let micGain = 30; // You may need to increase it if your microphone isn't sensitive enough
 window.v; // global variable for vowels
 let vowel = '';
 window.y; // global variable for yin (wavesjs-lfo)
@@ -35,8 +35,12 @@ function audioSetup() {
 		// input
 		mic = new p5.AudioIn();
 		mic.start();
+		// let sources = mic.getSources((srcs) => {
+		// 	//console.log(srcs); 
+		// 	//mic.setSource(5);
+		// });
+		//
 		// output 
-		//master = new p5.Gain();
 		master.connect();
 		master.amp(1, 0.5, 0); 
 		// speech recognition
@@ -71,9 +75,9 @@ function audioLoop() {
 //	Random granulation player, amplitude is controlled by mic input
 function playWhisper() {
     let offset = floor(random(0, 16) * 2); 
-	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.9, 1.4);
+	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
 	//console.log(rate); 
-	whispers.play(0, rate, 1, offset, duration);
+	whispers.play(0, rate, 1, offset, duration); //Man rate 0.85
 
     let metroPlayer = setTimeout(playWhisper, density);
 }
@@ -102,7 +106,7 @@ function audioAnalyser() {
 		trebleEnergy = fft.getEnergy('treble');
 		//console.log("Bass: " + bassEnergy + "   " + "Mid: " + midEnergy + "   " + "Treble: " + trebleEnergy)
 		if (typeof window.v !== "undefined") vowel = window.v;
-		if (window.y.pitch !== -1) freq = window.y.pitch;
+		if (window.y && window.y.pitch !== -1) freq = window.y.pitch;
 
 		let analyserRefresh = setTimeout(audioAnalyser, audioPollFreq);
 	}
