@@ -14,6 +14,10 @@
 'o' -> mettre en cercle
 'q' -> grossir particules
 's' -> reduire particules
+'f' -> créer flocking
+'F' -> défaire flocking
+'r' -> démarrer la rotation
+'R' -> arrêter la rotation
 ```
 ### Lexique des mouvements
 
