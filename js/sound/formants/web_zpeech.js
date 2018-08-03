@@ -19676,7 +19676,6 @@ _.each(formantsParams, function (f, v) {
 
 var formants = [];
 //var vowel;
-var oldVowel;
 
 maybeMicrophone.then(function(mic){
   setInterval(function(){
@@ -19688,8 +19687,7 @@ maybeMicrophone.then(function(mic){
     if (vowels[0]) {
       vowel = vowels[0].slice(0,1);
       vowel = vowel.toString();
-      if (vowel != oldVowel) window.v = vowel;
-      oldVowel = vowel;
+      window.v = vowel;
     }
   }, REFRESH_RATE);
 });
