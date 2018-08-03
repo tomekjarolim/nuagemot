@@ -26,5 +26,6 @@
 ```
 mouseX (move) -> rapidité de déplacement
 mouseY (move) -> opacité du fond
+mouseY (move) -> rotation
 mouseX (drag) -> translate des particules
 ```
