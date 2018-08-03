@@ -3,8 +3,8 @@ var particles = [];
 var nums;
 var particleDensity = 4000;
 var noiseScale = 800;
-var maxLife = 100;
-var maxSpeed = 10;
+var maxLife = 10;
+var maxSpeed = 30;
 var simulationSpeed = 0.2;
 var fadeFrame = 0;
 var backgroundColor;
@@ -23,15 +23,25 @@ var easing2 = .1;
 var img;
 var myPixels = []; 
 var startTimer;
-var zoom;
+var zoom = 0;
 var scaleVal = 5;
+var posX;
+var posY;
+var rotation = 0;
+var rotationTarget = 0;
+var wordDuration = 10000;
+
+var translation = 0;
+var translationTarget = 0;
 
 // position booleans
 var isBacteria = true;
 var isWord = false;
 var isCloud = false;
-var isVanGogh = false;
+var isDepth = false;
 var isEscape = false;
+var isFlocking = false;
+var isRotate = false;
 
 // word container
 var pgText;
@@ -55,7 +65,8 @@ function preloadSketch() {
 // initial settings
 function initSketch() {
 
-    nums = 500;
+
+    nums = 600;
     backgroundColor = color(0);
 
     createCanvas(windowWidth, windowHeight, WEBGL);
@@ -102,6 +113,7 @@ function initSketch() {
 
     for(var i = 0; i < nums; i++){
         particles[i] = new Particle(int(random(myPixels.length)));
+        particles[i].timerStart = millis();
     }
 
     posX = width/2+1;
@@ -111,8 +123,6 @@ function initSketch() {
 
 // draw skecth
 function drawSketch() {
-
-    //getSound(); 
 
     translate(-width/2,-height/2,0);
 
@@ -131,6 +141,7 @@ function drawSketch() {
         if (key == 'a') {
             isWord = true;
             startTimer = millis();
+            for (var i = 0; i < nums; i++) particles[i].timerStart = millis();
         }
 
         if (key == 'z') {
@@ -138,22 +149,28 @@ function drawSketch() {
             startTimer = millis();
         }
         if (key=='q') {
-            transpBorderTarget = 15;
-            radiusTarget = 150;
-            transpTarget = 0;
+            transpBorderTarget = 255;
+            radiusTarget = 40;
+            for(var i = 0; i < nums; i++) {
+                particles[i].zoomTailleTarget = 0;
+                particles[i].alphaTarget = 0;
+            }
         }
         if (key=='s') {
             transpBorderTarget = 0;
             radiusTarget = 2;
-            transpTarget = 255;
+            for(var i = 0; i < nums; i++) {
+                particles[i].zoomTailleTarget = 0;
+                particles[i].alphaTarget = 255;
+            }
         }
         if (key == 'h') { 
+
             myPixels.splice(0, myPixels.length);
 
             ctx.clearRect(0, 0, txtCanvas.width, txtCanvas.height);
 
             currentWord = currentWord = words[round(random(words.length))];
-
             ctx.fillStyle = "#000000";
             ctx.fillRect(0,0,txtCanvas.width, txtCanvas.height);
             ctx.font = "40px futura";
@@ -173,6 +190,7 @@ function drawSketch() {
 
             for(var i = 0; i < nums; i++){
                 var pos = int(random(myPixels.length));
+                particles[i].timerStart = millis();
                 particles[i].whitePosX = random(myPixels[pos].x*scaleVal-5,myPixels[pos].x*scaleVal+5);
                 particles[i].whitePosY = random(myPixels[pos].y*scaleVal-5,myPixels[pos].y*scaleVal+5);
             }
@@ -197,22 +215,59 @@ function drawSketch() {
                 particles[i].alphaTarget = 255;
             }
         }
-
+        if (key == 'm') {
+            for(var i = 0; i < nums; i++) {
+                var l = int(random(20));
+                particles[i].zoomTailleTarget = l;
+                particles[i].alphaTarget = map(l,0,20,255,5);
+            }
+        }
+        if (key == 'M') {
+            for(var i = 0; i < nums; i++) {
+                particles[i].zoomTailleTarget = 0;
+                particles[i].alphaTarget = 255;
+            }
+        }
+        if (key == 'f') {
+            isFlocking = true;
+        }
+        if (key == 'F') {
+            isFlocking = false;
+        }
+        if (key == 'r') {
+            isRotate = true;
+        }
+        if (key == 'R') {
+            isRotate = false;
+        }
+        if (key == 'b') {
+            isBacteria = true;
+        }
+        if (key == 'B') {
+            isBacteria = false;
+        }
+        if (key == 'd') {
+            isDepth = true;
+        }
+        if (key == 'D') {
+            isDepth = false;
+        }
     }
 
     if (isWord) {
 
-        if (millis()-startTimer > 5000) isWord = false;
+        if (millis()-startTimer > wordDuration) {
+            isWord = false;
+            for(var i = 0; i < nums; i++) particles[i].timerStart = millis();
+        }
 
     }
 
     if (isEscape) {
 
-        if (millis()-startTimer > 5000) isEscape = false;
+        if (millis()-startTimer > wordDuration) isEscape = false;
 
     }
-
-    ambientLight(255,0,0);
 
     noStroke();
     fill(0,transpBG);
@@ -221,12 +276,33 @@ function drawSketch() {
     rect(0,0,width,height);
     pop();
     
+    if (isFlocking) {
+
+        posX = lerp(posX, noise (frameCount /500.0) * width, 0.05);
+        posY = lerp(posY, noise (100+frameCount / 400.0), 0.05);
+
+    }
+
+    if (isRotate) {
+        rotationTarget = radians(mouseY);
+        translationTarget = width/2;
+    } else {
+        rotationTarget = 0;
+        translationTarget = 0;
+    }
+
+    push();
+
+    translate(0,translation,0);
+    rotateX(rotation);
 
     for(var i = 0; i < nums; i++) {
 
         var iterations = map(i,0,nums,5,1);
         
-        particles[i].move(iterations);
+        if (!isFlocking) particles[i].move(iterations);
+        else particles[i].setVelo(posX, posY, noise (frameCount / 300.0));
+
         particles[i].checkEdge();
         
         var particleColor;
@@ -247,10 +323,14 @@ function drawSketch() {
 
     } 
 
+    pop();
+
     radius += (radiusTarget-radius) * easing2;
     transp += (transpTarget-transp) * easing2;
     transpBorder += (transpBorderTarget-transpBorder) * easing2;
     transpBG += (transpBGTarget-transpBG) * easing2;
+    rotation += (rotationTarget-rotation) * easing;
+    translation += (translationTarget-translation) * easing;
 
 
 }
