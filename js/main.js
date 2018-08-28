@@ -12,7 +12,7 @@
 *
 */
 
-const micOn = false;
+const micOn = true;
 let recordState = 0;
 
 function preload() {
@@ -59,7 +59,7 @@ function keyPressed() {
 }
 
 function mouseMoved() {
-    maxSpeed = map(mouseX, width/10, width*9/10, 10, 0.4, true);
-    simulationSpeed = map(mouseX, 0, width, 2, maxSpeed, true);
-    transpBGTarget = map(mouseY, 0, height, 255, 5);
+    //maxSpeed = map(mouseX, width/10, width*9/10, 10, 0.4, true);
+    //simulationSpeed = map(mouseX, 0, width, 2, maxSpeed, true);
+    //transpBGTarget = map(mouseY, 0, height, 255, 5);
 }

@@ -5,7 +5,7 @@ var particleDensity = 4000;
 var noiseScale = 800;
 var maxLife = 10;
 var maxSpeed = 30;
-var simulationSpeed = 0.2;
+var simulationSpeed = /*0.2*/0;
 var fadeFrame = 0;
 var backgroundColor;
 var numModes = 4;
@@ -49,6 +49,8 @@ var myFont;
 var txtCanvas = document.createElement("canvas");
 var ctx;
 var currentWord = "";
+
+var speechDuration = 0;
 
 var words = ["tu voyageras loin ?","n’oublie pas le pain","vers où ?","l’espace est un doute","c’est à dire","ici je suis ailleurs","fais-moi signe","paysage","paradis (au 7ème étage)","doute","jungle","yeux","voyager",
 "déborder","ressentir","habiter","ça le fait","avoir l’air","au plaisir","à part ça","et pour cause","bien des choses","pour l’instant","ça alors","faut voir","tu parles","à d’autres","sans doute","nulle part","l’air de rien",
@@ -121,8 +123,55 @@ function initSketch() {
 
 }
 
+var silenceStarted;
+var hasTalked = false;
+
 // draw skecth
 function drawSketch() {
+
+    ////////////////////////////////////////////////////// to delete
+    if (amp) {
+        let toto = amp*1000;
+        if (toto > 1) {
+            if (speechDuration < 500) speechDuration+=.25;
+            if (transpBGTarget > 5) transpBGTarget--;
+            //transpBGTarget = map(speechDuration,0,300,255,5);
+            //radiusTarget = map(freq,70,480,2,10);
+            radiusTarget = map(speechDuration,0,300,2,10);
+            silenceStarted = millis();
+            hasTalked = true;
+            isWord = false;
+            simulationSpeed = toto;
+        } else {
+            if (millis()-silenceStarted > 5000 && hasTalked) {
+                isWord = true;
+                isBacteria = true;
+                isFlocking = false;
+                speechDuration = 0.1;
+                radiusTarget = 2;
+            }
+        }
+        /*console.log(speechDuration);*/
+    }
+    ////////////////////////////////////////////////////////////////
+
+    if (speechDuration == 0) {
+        for(var i = 0; i < nums; i++) {
+            particles[i].posTarget.x = width/2;
+            particles[i].posTarget.y = height/2;
+            particles[i].pos.x = width/2;
+            particles[i].pos.y = height/2;
+            background(0);
+        }
+    }
+
+    if (speechDuration > 100 && speechDuration <= 200) {
+        isBacteria = false;
+    }
+
+    if (speechDuration > 200 && speechDuration <= 300) {
+        isFlocking = true;
+    }
 
     translate(-width/2,-height/2,0);
 

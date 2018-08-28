@@ -126,6 +126,8 @@ function Particle(_whiteID){
             this.pos.x = this.posTarget.x;
             this.pos.y = this.posTarget.y;
             this.life = maxLife;
+            this.alphaTarget = 0;
+            this.alpha= 0;
         }
 
     }
@@ -135,6 +137,7 @@ function Particle(_whiteID){
         push();
         if (isDepth) translate(0,0,zoom+this.depth);
         else translate(0,0,zoom);
+        if (this.alphaTarget <= 255) this.alphaTarget+=1;
         stroke(255,transpBorder);
         fill(255,this.alpha);
         ellipse(this.pos.x, this.pos.y, r+this.taille/r+this.zoomTaille, r+this.taille/r+this.zoomTaille);
