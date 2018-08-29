@@ -1,3 +1,5 @@
+var vangogh = 0.2;
+
 function Particle(_whiteID){
 
     this.vel = createVector(0, 0);
@@ -60,7 +62,7 @@ function Particle(_whiteID){
                 else {
                     this.vel.x = cos(angle);
                     this.vel.y = sin(angle);
-                    this.vel.mult(.2);
+                    this.vel.mult(vangogh);
                 }
                 if (millis()-this.timerStart > this.timerDuration) this.posTarget.add(this.vel);
                 --iterations;
@@ -140,7 +142,7 @@ function Particle(_whiteID){
         if (this.alphaTarget <= 255) this.alphaTarget+=1;
         stroke(255,transpBorder);
         fill(255,this.alpha);
-        ellipse(this.pos.x, this.pos.y, r+this.taille/r+this.zoomTaille, r+this.taille/r+this.zoomTaille);
+        ellipse(this.pos.x, this.pos.y, r+this.zoomTaille, r+this.zoomTaille);
         pop();
 
     }

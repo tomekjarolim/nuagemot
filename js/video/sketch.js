@@ -10,8 +10,8 @@ var fadeFrame = 0;
 var backgroundColor;
 var numModes = 4;
 var invertColors = false;
-var radius = 2;
-var radiusTarget = 2;
+var radius = 0;
+var radiusTarget = 0;
 var transpBG = 255;
 var transpBGTarget = 255;
 var transp = 255;
@@ -68,7 +68,7 @@ function preloadSketch() {
 function initSketch() {
 
 
-    nums = 600;
+    nums = 1200;
     backgroundColor = color(0);
 
     createCanvas(windowWidth, windowHeight, WEBGL);
@@ -124,34 +124,127 @@ function initSketch() {
 }
 
 var silenceStarted;
+var talkStarted = false;
+
 var hasTalked = false;
+var switchToWord = false;
+
+var freqval;
 
 // draw skecth
 function drawSketch() {
 
     ////////////////////////////////////////////////////// to delete
+
     if (amp) {
+
         let toto = amp*1000;
+
         if (toto > 1) {
+
+            for (var i = 0; i < 100; i++) {
+                if (i==0) freqval = freq;
+                else {
+                    if (freq > freqval) freqval = freq;
+                }
+            }
+
+            if (!talkStarted) {
+
+                    if (freqval < 206) {
+                        isFlocking = false;
+                        isBacteria = true;
+                        consol.log("low");
+                    } else if (freqval >= 206 && freqval < 342) {
+                        isFlocking = false;
+                        isBacteria = false;
+                        consol.log("med");
+                    } else if (freqval >= 342) {
+                        isFlocking = true;
+                        isBacteria = false;
+                        consol.log("high");
+                    }
+
+                for(var i = 0; i < nums; i++) {
+                    particles[i].posTarget.x = width/2;
+                    particles[i].posTarget.y = height/2;
+                }
+
+                transpBGTarget = 255;
+                talkStarted = true;
+            }
+
             if (speechDuration < 500) speechDuration+=.25;
-            if (transpBGTarget > 5) transpBGTarget--;
-            //transpBGTarget = map(speechDuration,0,300,255,5);
-            //radiusTarget = map(freq,70,480,2,10);
-            radiusTarget = map(speechDuration,0,300,2,10);
+
+            if (transpBGTarget > 4) transpBGTarget--;
+
+            radiusTarget = map(speechDuration,0,300,1,10);
             silenceStarted = millis();
             hasTalked = true;
             isWord = false;
-            simulationSpeed = toto;
+            simulationSpeed = toto*2;
+            vangogh = map(toto,0,80,0.1,2);
+            switchToWord = false;
+
         } else {
+
             if (millis()-silenceStarted > 5000 && hasTalked) {
+
+                talkStarted = false; 
                 isWord = true;
-                isBacteria = true;
-                isFlocking = false;
+
+                if (!switchToWord) {
+
+                    myPixels.splice(0, myPixels.length);
+
+                    ctx.clearRect(0, 0, txtCanvas.width, txtCanvas.height);
+
+                    currentWord = currentWord = words[round(random(words.length))];
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(0,0,txtCanvas.width, txtCanvas.height);
+                    ctx.font = "40px futura";
+                    ctx.fillStyle = "white";
+                    ctx.textAlign = "center";
+                    ctx.fillText(currentWord, txtCanvas.width/2, txtCanvas.height/2); 
+                    ctx.fill();
+
+                    var imgData = ctx.getImageData(0,0,txtCanvas.width,txtCanvas.height).data;
+                    
+                    for( var yImage = 0 ; yImage < txtCanvas.height ; yImage++ ){
+                        for( var xImage = 0 ; xImage < txtCanvas.width ; xImage++ ){
+                            var iData = (yImage * (txtCanvas.width * 4)) + (xImage * 4);
+                            if( imgData[iData] > 250) myPixels.push( new WhitePixels( xImage , yImage ) );
+                        }
+                    }
+
+                    for(var i = 0; i < nums; i++){
+                        var pos = int(random(myPixels.length));
+                        particles[i].timerStart = millis();
+                        particles[i].whitePosX = random(myPixels[pos].x*scaleVal-5,myPixels[pos].x*scaleVal+5);
+                        particles[i].whitePosY = random(myPixels[pos].y*scaleVal-5,myPixels[pos].y*scaleVal+5);
+                    }
+
+                    startTimer = millis();
+                    for (var i = 0; i < nums; i++) particles[i].timerStart = millis();
+                    switchToWord = true;
+
+                }
+
+                //isBacteria = true;
+                //isFlocking = false;
                 speechDuration = 0.1;
-                radiusTarget = 2;
+                //radiusTarget = 1;
             }
         }
-        /*console.log(speechDuration);*/
+
+        /*if (toto > 20) {
+
+            console.log("loud");
+            isDepth = true;
+            isRotate = true;
+
+        }*/
+
     }
     ////////////////////////////////////////////////////////////////
 
@@ -161,16 +254,8 @@ function drawSketch() {
             particles[i].posTarget.y = height/2;
             particles[i].pos.x = width/2;
             particles[i].pos.y = height/2;
-            background(0);
         }
-    }
-
-    if (speechDuration > 100 && speechDuration <= 200) {
-        isBacteria = false;
-    }
-
-    if (speechDuration > 200 && speechDuration <= 300) {
-        isFlocking = true;
+        background(0);
     }
 
     translate(-width/2,-height/2,0);
@@ -183,8 +268,8 @@ function drawSketch() {
                 particles[i].posTarget.y = height/2;
                 particles[i].pos.x = width/2;
                 particles[i].pos.y = height/2;
-                background(0);
             }
+            background(0);
         }
 
         if (key == 'a') {
@@ -307,7 +392,13 @@ function drawSketch() {
 
         if (millis()-startTimer > wordDuration) {
             isWord = false;
-            for(var i = 0; i < nums; i++) particles[i].timerStart = millis();
+            for(var i = 0; i < nums; i++) {
+                particles[i].timerStart = millis();
+                particles[i].posTarget.x = width/2;
+                particles[i].posTarget.y = height/2;
+                particles[i].pos.x = width/2;
+                particles[i].pos.y = height/2;
+            }
         }
 
     }
@@ -363,11 +454,11 @@ function drawSketch() {
         particleColor = color(255, alpha * fadeRatio);
           
         particles[i].display(radius);
-        particles[i].pos.x = particles[i].pos.x + ((particles[i].posTarget.x - particles[i].pos.x) * 0.1);
-        particles[i].pos.y = particles[i].pos.y + ((particles[i].posTarget.y - particles[i].pos.y) * 0.1);
 
-        particles[i].zoomTaille = particles[i].zoomTaille + ((particles[i].zoomTailleTarget - particles[i].zoomTaille) * 0.1);
-        //particles[i].alpha = particles[i].alpha + ((particles[i].alphaTarget - particles[i].alpha) * 0.1);
+        particles[i].pos.x += (particles[i].posTarget.x - particles[i].pos.x) * 0.1;
+        particles[i].pos.y += (particles[i].posTarget.y - particles[i].pos.y) * 0.1;
+
+        particles[i].zoomTaille += (particles[i].zoomTailleTarget - particles[i].zoomTaille) * 0.1;
         particles[i].alpha += (particles[i].alphaTarget-particles[i].alpha)*0.1;
 
     } 
