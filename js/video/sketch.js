@@ -10,10 +10,10 @@ var fadeFrame = 0;
 var backgroundColor;
 var numModes = 4;
 var invertColors = false;
-var radius = 0;
-var radiusTarget = 0;
-var transpBG = 255;
-var transpBGTarget = 255;
+var radius = 1;
+var radiusTarget = 1;
+var transpBG = 165;
+var transpBGTarget = 165;
 var transp = 255;
 var transpTarget = 255;
 var transpBorder = 0;
@@ -24,6 +24,7 @@ var img;
 var myPixels = []; 
 var startTimer;
 var zoom = 0;
+var zoomTarget = 0;
 var scaleVal = 5;
 var posX;
 var posY;
@@ -125,45 +126,38 @@ function initSketch() {
 
 var silenceStarted;
 var talkStarted = false;
-
 var hasTalked = false;
 var switchToWord = false;
+var freqval = -1;
+var waitFreq = -1;
 
-var freqval;
+var freqArray = [];
+
+var changePitch = false;
 
 // draw skecth
 function drawSketch() {
 
     ////////////////////////////////////////////////////// to delete
 
-    if (amp) {
+    if (zoomTarget>=0) zoomTarget-=2;
+
+    if (amp && freq) {
 
         let toto = amp*1000;
 
-        if (toto > 1) {
-
-            for (var i = 0; i < 100; i++) {
-                if (i==0) freqval = freq;
-                else {
-                    if (freq > freqval) freqval = freq;
-                }
-            }
+        if (toto > 3) {
 
             if (!talkStarted) {
 
-                    if (freqval < 206) {
-                        isFlocking = false;
-                        isBacteria = true;
-                        consol.log("low");
-                    } else if (freqval >= 206 && freqval < 342) {
-                        isFlocking = false;
-                        isBacteria = false;
-                        consol.log("med");
-                    } else if (freqval >= 342) {
-                        isFlocking = true;
-                        isBacteria = false;
-                        consol.log("high");
-                    }
+                freqval = -1;
+
+                for (var i=0; i<500; i++) {
+                    freqArray[i] = freq;
+                }
+
+                waitFreq = millis();
+                freqval = max(freqArray);
 
                 for(var i = 0; i < nums; i++) {
                     particles[i].posTarget.x = width/2;
@@ -172,17 +166,54 @@ function drawSketch() {
 
                 transpBGTarget = 255;
                 talkStarted = true;
+
             }
 
-            if (speechDuration < 500) speechDuration+=.25;
+            if (millis()-waitFreq > 1000) {
 
-            if (transpBGTarget > 4) transpBGTarget--;
+                if (!changePitch) {
 
-            radiusTarget = map(speechDuration,0,300,1,10);
+                    if (freqval > -1 && freqval < 126) {
+                        isFlocking = false;
+                        isBacteria = true;
+                        console.log("lo");
+                    } else if (freqval >= 126 && freqval < 312) {
+                        isFlocking = false;
+                        isBacteria = false;
+                        console.log("mid");
+                        for(var i = 0; i < nums; i++) {
+                            var l = int(random(20));
+                            particles[i].zoomTailleTarget = l;
+                            particles[i].alphaTarget = map(l,0,20,255,5);
+                        }
+                    } else if (freqval >= 312) {
+                        isFlocking = true;
+                        isBacteria = false;
+                        console.log("hi");
+                    }
+
+                }
+
+                changePitch = true;
+
+            }
+
+            speechDuration+=.25;
+
+            if (speechDuration > 10) {
+                if (zoomTarget < width) {
+                    zoomTarget+=5;
+                    console.log("ok");
+                }
+            }
+
+            if (transpBGTarget > 6) transpBGTarget--;
+
+            radiusTarget = map(speechDuration,0,300,2,10);
             silenceStarted = millis();
             hasTalked = true;
             isWord = false;
-            simulationSpeed = toto*2;
+            simulationSpeed = toto;
             vangogh = map(toto,0,80,0.1,2);
             switchToWord = false;
 
@@ -229,23 +260,35 @@ function drawSketch() {
                     switchToWord = true;
 
                 }
-
-                //isBacteria = true;
-                //isFlocking = false;
                 speechDuration = 0.1;
-                //radiusTarget = 1;
             }
         }
 
-        /*if (toto > 20) {
+        if (toto > 60) {
 
-            console.log("loud");
-            isDepth = true;
-            isRotate = true;
+            //zoomTarget = -width;
+            transpBGTarget = 165;
 
-        }*/
+            for(var i = 0; i < nums; i++) {
+                var angleO = random(TWO_PI);
+                particles[i].posTarget.x = width/2 + cos(angleO) * 20;
+                particles[i].posTarget.y = height/2 + sin(angleO) * 20;
+            }
+
+            //tooLoud = true;
+
+        } else {
+
+            /*if (tooLoud) {
+                zoomTarget = 0;
+                tooLoud = false;
+            }*/
+
+        }
 
     }
+
+    var tooLoud = false;
     ////////////////////////////////////////////////////////////////
 
     if (speechDuration == 0) {
@@ -370,9 +413,11 @@ function drawSketch() {
         }
         if (key == 'r') {
             isRotate = true;
+            for(var i = 0; i < nums; i++) particles[i].depthTarget = random(-width/4,-1);
         }
         if (key == 'R') {
             isRotate = false;
+            for(var i = 0; i < nums; i++) particles[i].depthTarget = 0;
         }
         if (key == 'b') {
             isBacteria = true;
@@ -424,7 +469,8 @@ function drawSketch() {
     }
 
     if (isRotate) {
-        rotationTarget = radians(mouseY);
+        //rotationTarget = radians(mouseY);
+        rotationTarget = map(freq,0,600,-4,4);
         translationTarget = width/2;
     } else {
         rotationTarget = 0;
@@ -461,6 +507,8 @@ function drawSketch() {
         particles[i].zoomTaille += (particles[i].zoomTailleTarget - particles[i].zoomTaille) * 0.1;
         particles[i].alpha += (particles[i].alphaTarget-particles[i].alpha)*0.1;
 
+        particles[i].depth += (particles[i].depthTarget-particles[i].depth)*0.1;
+
     } 
 
     pop();
@@ -469,9 +517,9 @@ function drawSketch() {
     transp += (transpTarget-transp) * easing2;
     transpBorder += (transpBorderTarget-transpBorder) * easing2;
     transpBG += (transpBGTarget-transpBG) * easing2;
-    rotation += (rotationTarget-rotation) * easing;
+    rotation += (rotationTarget-rotation) * 0.01;
     translation += (translationTarget-translation) * easing;
-
+    zoom += (zoomTarget-zoom) * easing;
 
 }
 

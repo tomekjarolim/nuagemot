@@ -26,7 +26,8 @@ function Particle(_whiteID){
     this.timerStart;
     this.timerDuration = int(random(1000));
 
-    this.depth = random(-width/4,-1);
+    this.depth = 0;
+    this.depthTarget = 0;//random(-width/4,-1)
 
     if (this.posTarget.x <= width/2) {
         if (this.posTarget.y <= width/2) {
@@ -137,8 +138,11 @@ function Particle(_whiteID){
     this.display = function(r) {
 
         push();
-        if (isDepth) translate(0,0,zoom+this.depth);
-        else translate(0,0,zoom);
+        /*if (isDepth) translate(0,0,zoom+this.depth);
+        else translate(0,0,zoom);*/
+
+        translate(0,0,zoom+this.depth);
+
         if (this.alphaTarget <= 255) this.alphaTarget+=1;
         stroke(255,transpBorder);
         fill(255,this.alpha);
