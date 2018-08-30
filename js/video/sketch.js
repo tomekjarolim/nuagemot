@@ -1,4 +1,6 @@
 // particles variables
+const minRadus = 4;
+
 var particles = [];
 var nums;
 var particleDensity = 4000;
@@ -10,8 +12,8 @@ var fadeFrame = 0;
 var backgroundColor;
 var numModes = 4;
 var invertColors = false;
-var radius = 1;
-var radiusTarget = 1;
+var radius = minRadus;
+var radiusTarget = minRadus;
 var transpBG = 165;
 var transpBGTarget = 165;
 var transp = 255;
@@ -43,6 +45,11 @@ var isDepth = false;
 var isEscape = false;
 var isFlocking = false;
 var isRotate = false;
+var isLuciole = false;
+var isSquare = false;
+var isFlash = false;
+var isClicked = false;
+var isWordOver = false;
 
 // word container
 var pgText;
@@ -58,6 +65,11 @@ var words = ["tu voyageras loin ?","n’oublie pas le pain","vers où ?","l’
 "et bien","de rien","encore heureux","rien que ça","par ailleurs","ou bien","tout simplement comment dire","de ci de là","que dalle","pour autant","vu d’ici","après tout","en vrai","d’ailleurs","quelque part","mon œil","et voilà",
 "et alors","bien entendu","pourquoi pas","d’ici peu","sous silence","d’ici là","n’importe quoi","d’autant plus","tout d’un coup","mais encore","ma parole","et encore","bref","voilà voilà","sait-on jamais","bien du plaisir","ici même"];
 
+
+// flash
+var radiusFlash = 0, radiusFlashTarget = 0;
+var alphaFlash = 0, alphaFlashTarget = 0;
+
 // preaload images
 function preloadSketch() {
 
@@ -72,6 +84,7 @@ function initSketch() {
     nums = 1200;
     backgroundColor = color(0);
 
+
     createCanvas(windowWidth, windowHeight, WEBGL);
     background(backgroundColor);
 
@@ -79,8 +92,6 @@ function initSketch() {
     txtCanvas.height = height/scaleVal;
     txtCanvas.setAttribute("id", "txtCss");
     
-    //document.body.appendChild(txtCanvas);
-
     ctx = txtCanvas.getContext('2d');
 
     currentWord = "";
@@ -135,8 +146,13 @@ var freqArray = [];
 
 var changePitch = false;
 
+var tooLoud = false;
+var changeToLuciole = false;
+
 // draw skecth
 function drawSketch() {
+
+    console.log(amp);
 
     ////////////////////////////////////////////////////// to delete
 
@@ -146,25 +162,39 @@ function drawSketch() {
 
         let toto = amp*1000;
 
+        console.log(toto);
+
         if (toto > 3) {
 
             if (!talkStarted) {
 
                 freqval = -1;
+                transpBGTarget = 255;
+                changeToLuciole = false;
+                isLuciole = false;
+                isSquare = false;
+                isFlocking = false;
+                isBacteria = true;
+                freqArray = [];
+                changePitch = false;
+                waitFreq = -1;
+                isWordOver = false;
 
-                for (var i=0; i<500; i++) {
-                    freqArray[i] = freq;
-                }
-
+                for (var i=0; i<1500; i++) freqArray[i] = freq;
                 waitFreq = millis();
                 freqval = max(freqArray);
 
                 for(var i = 0; i < nums; i++) {
                     particles[i].posTarget.x = width/2;
                     particles[i].posTarget.y = height/2;
+                    particles[i].pos.x = width/2;
+                    particles[i].pos.y = height/2;
+                    particles[i].zoomTailleTarget = 0;
+                    particles[i].shaking = 0;
+                    particles[i].radiusTarget = minRadus;
+                    particles[i].alphaTarget = 255;
                 }
 
-                transpBGTarget = 255;
                 talkStarted = true;
 
             }
@@ -181,11 +211,6 @@ function drawSketch() {
                         isFlocking = false;
                         isBacteria = false;
                         console.log("mid");
-                        for(var i = 0; i < nums; i++) {
-                            var l = int(random(20));
-                            particles[i].zoomTailleTarget = l;
-                            particles[i].alphaTarget = map(l,0,20,255,5);
-                        }
                     } else if (freqval >= 312) {
                         isFlocking = true;
                         isBacteria = false;
@@ -200,16 +225,35 @@ function drawSketch() {
 
             speechDuration+=.25;
 
-            if (speechDuration > 10) {
+            if (speechDuration > 40) {
                 if (zoomTarget < width) {
                     zoomTarget+=5;
-                    console.log("ok");
                 }
             }
 
-            if (transpBGTarget > 6) transpBGTarget--;
+            if (isBacteria && !isFlocking) {
+                if (speechDuration > 100) {
+                    if (!changeToLuciole) {
+                        for(var i = 0; i < nums; i++) {
+                            var l = int(random(40));
+                            particles[i].zoomTailleTarget = l;
+                            particles[i].alphaTarget = map(l,0,40,255,3);
+                        }
+                        changeToLuciole = true;
+                        isLuciole = true;
+                    }
+                }
+            }
 
-            radiusTarget = map(speechDuration,0,300,2,10);
+            if (transpBGTarget > 10) {
+                if (isBacteria) {
+                    transpBGTarget-=.75;
+                } else {
+                    transpBGTarget-=2;
+                }
+            }
+
+            radiusTarget = map(speechDuration,0,300,minRadus,15);
             silenceStarted = millis();
             hasTalked = true;
             isWord = false;
@@ -222,7 +266,11 @@ function drawSketch() {
             if (millis()-silenceStarted > 5000 && hasTalked) {
 
                 talkStarted = false; 
+
+                isFlocking = false;
                 isWord = true;
+
+                radiusTarget = minRadus;
 
                 if (!switchToWord) {
 
@@ -253,6 +301,7 @@ function drawSketch() {
                         particles[i].timerStart = millis();
                         particles[i].whitePosX = random(myPixels[pos].x*scaleVal-5,myPixels[pos].x*scaleVal+5);
                         particles[i].whitePosY = random(myPixels[pos].y*scaleVal-5,myPixels[pos].y*scaleVal+5);
+                        particles[i].shaking = speechDuration/10+5;
                     }
 
                     startTimer = millis();
@@ -264,10 +313,13 @@ function drawSketch() {
             }
         }
 
-        if (toto > 60) {
+        if (toto > 80) {
 
-            //zoomTarget = -width;
-            transpBGTarget = 165;
+            isSquare = true;
+
+        }
+
+        if (toto > 100) {
 
             for(var i = 0; i < nums; i++) {
                 var angleO = random(TWO_PI);
@@ -275,30 +327,23 @@ function drawSketch() {
                 particles[i].posTarget.y = height/2 + sin(angleO) * 20;
             }
 
-            //tooLoud = true;
-
-        } else {
-
-            /*if (tooLoud) {
-                zoomTarget = 0;
-                tooLoud = false;
-            }*/
+            isFlash = true;
 
         }
 
     }
 
-    var tooLoud = false;
+    if (isFlash) {
+        radiusFlashTarget = width*2;
+        alphaFlashTarget = 0;
+    }
     ////////////////////////////////////////////////////////////////
 
     if (speechDuration == 0) {
         for(var i = 0; i < nums; i++) {
             particles[i].posTarget.x = width/2;
             particles[i].posTarget.y = height/2;
-            particles[i].pos.x = width/2;
-            particles[i].pos.y = height/2;
         }
-        background(0);
     }
 
     translate(-width/2,-height/2,0);
@@ -431,27 +476,29 @@ function drawSketch() {
         if (key == 'D') {
             isDepth = false;
         }
+        if (key == 'c') {
+            isSquare = true;
+        }
+        if (key == 'C') {
+            isSquare = false;
+        }
     }
 
     if (isWord) {
-
         if (millis()-startTimer > wordDuration) {
             isWord = false;
-            for(var i = 0; i < nums; i++) {
-                particles[i].timerStart = millis();
-                particles[i].posTarget.x = width/2;
-                particles[i].posTarget.y = height/2;
-                particles[i].pos.x = width/2;
-                particles[i].pos.y = height/2;
-            }
+            isWordOver = true;
         }
+    }
 
+    if (isWordOver) {
+        for(var i = 0; i < nums; i++) {
+            particles[i].timerEnd = millis();
+        }
     }
 
     if (isEscape) {
-
         if (millis()-startTimer > wordDuration) isEscape = false;
-
     }
 
     noStroke();
@@ -463,13 +510,13 @@ function drawSketch() {
     
     if (isFlocking) {
 
-        posX = lerp(posX, noise (frameCount /500.0) * width, 0.05);
-        posY = lerp(posY, noise (100+frameCount / 400.0), 0.05);
+        posX = lerp(posX, noise (frameCount/500.0) * width, 0.05);
+        posY = lerp(posY, noise (100+frameCount/400.0), 0.05);
 
     }
 
     if (isRotate) {
-        //rotationTarget = radians(mouseY);
+        rotationTarget = radians(mouseY);
         rotationTarget = map(freq,0,600,-4,4);
         translationTarget = width/2;
     } else {
@@ -520,6 +567,18 @@ function drawSketch() {
     rotation += (rotationTarget-rotation) * 0.01;
     translation += (translationTarget-translation) * easing;
     zoom += (zoomTarget-zoom) * easing;
+
+    fill(255,alphaFlash);
+    ellipse(width/2,height/2,radiusFlash,radiusFlash);
+    radiusFlash += (radiusFlashTarget-radiusFlash) * .3;
+    alphaFlash += (alphaFlashTarget-alphaFlash) * .3;
+
+    if (round(radiusFlash/10) == radiusFlashTarget/10) {
+        radiusFlash = 0;
+        radiusFlashTarget = 0;
+        alphaFlashTarget = 255;
+        isFlash = false;
+    }
 
 }
 

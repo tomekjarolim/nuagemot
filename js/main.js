@@ -23,7 +23,7 @@ function preload() {
 function setup() {
     initSketch();
     audioSetup();
-    noCursor();
+    //noCursor();
 }
 
 function draw() {

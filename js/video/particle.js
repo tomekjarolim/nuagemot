@@ -11,10 +11,10 @@ function Particle(_whiteID){
     this.whitePosX = random(myPixels[this.whiteID].x*scaleVal-5,myPixels[this.whiteID].x*scaleVal+5);
     this.whitePosY = random(myPixels[this.whiteID].y*scaleVal-5,myPixels[this.whiteID].y*scaleVal+5);
     this.escape = int(random(3));
-    this.taille = random(1,3);
+    this.taille = random(2,4);
 
-    this.alpha = 255;
-    this.alphaTarget = 255;
+    this.alpha = 0;
+    this.alphaTarget = 0;
 
     this.zoomTaille = 0;
     this.zoomTailleTarget = 0;
@@ -24,10 +24,18 @@ function Particle(_whiteID){
     this.speedo = random(1,3);
 
     this.timerStart;
+    this.timerEnd;
     this.timerDuration = int(random(1000));
 
     this.depth = 0;
-    this.depthTarget = 0;//random(-width/4,-1)
+    this.depthTarget = 0;
+
+    this.alphaLuciole = random(5,255);
+
+    this.shaking = 0;
+    this.cornerRadius = 0;
+
+    this.alphaSpeed = random(1,3);
 
     if (this.posTarget.x <= width/2) {
         if (this.posTarget.y <= width/2) {
@@ -38,7 +46,7 @@ function Particle(_whiteID){
             this.escapePosY = int(random(height/2,height+10));
         }
     } else {
-        if (this.posTarget.y <= width/2) {
+        if (this.posTarget.y <= height/2) {
             this.escapePosX = int(random(width/2,width+10));
             this.escapePosY = int(random(-10,height/2));
         } else {
@@ -59,8 +67,7 @@ function Particle(_whiteID){
                     this.vel.x = cos( random(minAngle,angle) );
                     this.vel.y = sin( random(minAngle,angle) );
                     this.vel.mult(simulationSpeed);
-                }
-                else {
+                } else {
                     this.vel.x = cos(angle);
                     this.vel.y = sin(angle);
                     this.vel.mult(vangogh);
@@ -72,8 +79,8 @@ function Particle(_whiteID){
 
         if (isWord) {
             if (millis()-this.timerStart > this.timerDuration) {
-                this.posTarget.x = this.whitePosX+random(-10,10);
-                this.posTarget.y = this.whitePosY+random(-10,10);
+                this.posTarget.x = this.whitePosX+random(-this.shaking,this.shaking);
+                this.posTarget.y = this.whitePosY+random(-this.shaking,this.shaking);
             }
         }
 
@@ -93,12 +100,11 @@ function Particle(_whiteID){
         var maxDis = mm*dist (0, 0, width/2, height/2);
 
         dis = dist (this.posTarget.x, this.posTarget.y, width/2, height/2);
-        fAngle = map (dis, 0, maxDis, posY, 0);
-        angle = map (dis, 0, maxDis, PI, 0) +  random (-PI/4*fAngle, PI/4*fAngle);
+        fAngle = map(dis, 0, maxDis, posY, 0);
+        angle = map(dis, 0, maxDis, PI, 0) +  random(-PI/4*fAngle, PI/4*fAngle);
 
         this.velo.x += cos (angle)*stength;
         this.velo.y += sin (angle)*stength;
-
         this.velo.normalize();
         
         this.posTarget.add(this.multi (this.velo, this.speedo));
@@ -138,15 +144,19 @@ function Particle(_whiteID){
     this.display = function(r) {
 
         push();
-        /*if (isDepth) translate(0,0,zoom+this.depth);
-        else translate(0,0,zoom);*/
-
         translate(0,0,zoom+this.depth);
-
-        if (this.alphaTarget <= 255) this.alphaTarget+=1;
+        if (!isLuciole && !isWordOver) {
+            if (this.alphaTarget <= 255) this.alphaTarget+=1;
+        } else if (isLuciole && !isWordOver) {
+            if (this.alphaTarget <= this.alphaLuciole) this.alphaTarget+=1;
+        }
+        if (isWordOver) {
+            if (this.alphaTarget >= 0) this.alphaTarget-=this.alphaSpeed;
+        }
         stroke(255,transpBorder);
         fill(255,this.alpha);
-        ellipse(this.pos.x, this.pos.y, r+this.zoomTaille, r+this.zoomTaille);
+        if (!isSquare) ellipse(this.pos.x, this.pos.y, r+this.zoomTaille, r+this.zoomTaille);
+        else rect(this.pos.x, this.pos.y, r+this.zoomTaille, r+this.zoomTaille);
         pop();
 
     }
