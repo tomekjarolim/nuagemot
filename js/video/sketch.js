@@ -152,7 +152,7 @@ var changeToLuciole = false;
 // draw skecth
 function drawSketch() {
 
-    console.log(amp);
+    //console.log(amp);
 
     ////////////////////////////////////////////////////// to delete
 
@@ -162,7 +162,7 @@ function drawSketch() {
 
         let toto = amp*1000;
 
-        console.log(toto);
+        //console.log(toto);
 
         if (toto > 3) {
 
