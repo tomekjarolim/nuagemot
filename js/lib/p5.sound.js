@@ -11063,11 +11063,11 @@ soundRecorder = function () {
     this.output = ac.createGain();
     this.recording = false;
     this.bufferSize = 1024;
-    this._channels = 2; 
-    // stereo (default)
+    this._channels = 1;
+    // stereo (default) => SET TO MONO !! 
     this._clear();
     // initialize variables
-    this._jsNode = ac.createScriptProcessor(this.bufferSize, this._channels, 2);
+    this._jsNode = ac.createScriptProcessor(this.bufferSize, this._channels, 1);
     this._jsNode.onaudioprocess = this._audioprocess.bind(this);
     /**
      *  callback invoked when the recording is over
@@ -11151,7 +11151,7 @@ soundRecorder = function () {
   };
   p5.SoundRecorder.prototype._clear = function () {
     this._leftBuffers = [];
-    this._rightBuffers = [];
+    //this._rightBuffers = []; // MONO
     this.recordedSamples = 0;
     this.sampleLimit = null;
   };
@@ -11171,10 +11171,10 @@ soundRecorder = function () {
       } else {
         // get channel data
         var left = event.inputBuffer.getChannelData(0);
-        var right = event.inputBuffer.getChannelData(1);
+        //var right = event.inputBuffer.getChannelData(1); // MONO
         // clone the samples
         this._leftBuffers.push(new Float32Array(left));
-        this._rightBuffers.push(new Float32Array(right));
+        //this._rightBuffers.push(new Float32Array(right)); // MONO
         this.recordedSamples += this.bufferSize;
       }
     }
@@ -11182,7 +11182,7 @@ soundRecorder = function () {
   p5.SoundRecorder.prototype._getBuffer = function () {
     var buffers = [];
     buffers.push(this._mergeBuffers(this._leftBuffers));
-    buffers.push(this._mergeBuffers(this._rightBuffers));
+    //buffers.push(this._mergeBuffers(this._rightBuffers)); // MONO
     return buffers;
   };
   p5.SoundRecorder.prototype._mergeBuffers = function (channelBuffer) {
