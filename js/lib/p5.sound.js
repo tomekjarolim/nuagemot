@@ -11063,7 +11063,7 @@ soundRecorder = function () {
     this.output = ac.createGain();
     this.recording = false;
     this.bufferSize = 1024;
-    this._channels = 2;
+    this._channels = 2; 
     // stereo (default)
     this._clear();
     // initialize variables

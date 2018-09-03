@@ -12,7 +12,7 @@ let micBuffer;
 let master = new p5.Gain();
 let granulationGain = new p5.Gain();
 let micGranulationGain = new p5.Gain();
-let micGain = 1; // You may need to increase it if your microphone isn't sensitive enough
+let micGain = 10; // You may need to increase it if your microphone isn't sensitive enough
 window.y; // global variable for yin (wavesjs-lfo)
 let freq;
 let ampThresh = 0.01;
@@ -25,7 +25,7 @@ let hasRecorded = false;
 let isRecording = false;
 let theEnd = false;
 let silentState = false;
-let afterWordDuration = 10000;
+let afterWordDuration = 20000;
 let zeroTimerDuration = 5000;
 let chosenBufferNumber = 0;
 let isSchedulerOn = false;

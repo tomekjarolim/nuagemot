@@ -1,5 +1,5 @@
 // particles variables
-const minRadus = 4;
+const minRadus = 2;
 
 var particles = [];
 var nums;
@@ -196,7 +196,8 @@ var changeToLuciole = false;
 // draw skecth
 function drawSketch() {
 
-    ////////////////////////////////////////////////////// to delete
+    /////////////////////////////////////////////////////
+
 
     if (zoomTarget>=0) zoomTarget-=2;
 
@@ -204,10 +205,11 @@ function drawSketch() {
 
         let toto = amp*1000;
 
-        if (toto > 3 && eloquence > 0) {
+        if (toto > 5 && eloquence > 0) {
 
             ////// create particle
             if (particles.length < 1000 && !isWord) {
+                changeToLuciole 
                 particles.push(new Particle(int(random(myPixels.length))));
             }
             //////
@@ -315,9 +317,14 @@ function drawSketch() {
                 isFlocking = false;
                 isWord = true;
 
-                radiusTarget = minRadus;
+                /*radiusTarget = minRadus;*/
 
                 if (!switchToWord) {
+
+                    if (isSquare) {
+                        radiusTarget = random(1,5);
+                        console.log("test square");
+                    }
 
                     myPixels.splice(0, myPixels.length);
 
@@ -523,7 +530,7 @@ function drawSketch() {
                 particles[i].state1 = true;
             }
 
-            if (particles[i].posTarget.y < separatorPosY ) {
+            if (particles[i].posTarget.y < round(random(separatorPosY-50, separatorPosY)) ) {
                 particles[i].state1 = false;
                 particles[i].state2 = true; 
             }

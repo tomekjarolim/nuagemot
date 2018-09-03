@@ -4,7 +4,7 @@ function Particle(_whiteID){
 
     this.vel = createVector(0, 0);
     //this.posTarget = createVector(width/2, height/2);
-    this.posTarget = createVector(random(width/2-15,width/2+15), height-1);
+    this.posTarget = createVector(random(width/2-5,width/2+5), height-1);
     this.pos = createVector(this.posTarget.x, this.posTarget.y);
     this.life = random(50, maxLife);
     this.flip = int(random(0,2)) * 2 - 1;
@@ -12,7 +12,7 @@ function Particle(_whiteID){
     this.whitePosX = random(myPixels[this.whiteID].x*scaleVal-5,myPixels[this.whiteID].x*scaleVal+5);
     this.whitePosY = random(myPixels[this.whiteID].y*scaleVal-5,myPixels[this.whiteID].y*scaleVal+5);
     this.escape = int(random(3));
-    this.taille = random(2,4);
+    this.taille = random(4);
 
     //
     this.isSpawning = true;
@@ -28,7 +28,7 @@ function Particle(_whiteID){
     this.mass = random(0.5, 2);
     this.speed = random(0.075, 0.1);
     this.speedLimit = this.speed * 20.0;
-    this.fallRate = random(-0.1, 0.1);
+    this.fallRate = random(-0.06, 0.06);
     //
 
     this.alpha = 255;
@@ -54,6 +54,13 @@ function Particle(_whiteID){
     this.cornerRadius = 0;
 
     this.alphaSpeed = random(1,3);
+
+    //
+    if (changeToLuciole) {
+        var l = int(random(40));
+        this.zoomTailleTarget = l;
+        this.alphaTarget = map(l,0,40,255,3);
+    }
 
     /*if (this.posTarget.x <= width/2) {
         if (this.posTarget.y <= width/2) {
@@ -186,7 +193,7 @@ function Particle(_whiteID){
         stroke(255,transpBorder);
         fill(255,this.alpha);
         if (!isSquare) ellipse(this.pos.x, this.pos.y, r+this.zoomTaille, r+this.zoomTaille);
-        else rect(this.pos.x, this.pos.y, r+this.zoomTaille, r+this.zoomTaille);
+        else rect(this.pos.x, this.pos.y, r+this.zoomTaille+this.taille, r+this.zoomTaille+this.taille);
         pop();
 
     }
