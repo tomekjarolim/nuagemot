@@ -12,7 +12,7 @@
 *
 */
 
-const micOn = true;
+let micOn = true;
 let recordState = 0;
 
 function preload() {
@@ -28,7 +28,7 @@ function setup() {
 
 function draw() {
     drawSketch();
-    //audioLoop();
+    audioLoop();
 }
 
 function mousePressed() {
@@ -42,20 +42,6 @@ function mouseDragged() {
 }
 
 function keyPressed() {
-    // Press return to start/stop audio recording
-    if (keyCode === RETURN) {
-        if (recordState === 0) {
-            recorder.record(soundFile);
-            console.log('Recording audio...');
-            recordState = 1;
-        } else if (recordState === 1) {
-            recorder.stop(); 
-            let theTime = Date.now();
-            saveSound(soundFile, 'whispers_' + theTime + '.wav');
-            console.log('Stopped recording. Soundfile saved!');
-            recordState = 0;
-        }
-    }
 }
 
 function mouseMoved() {
