@@ -12,14 +12,14 @@ let micBuffer;
 let master = new p5.Gain();
 let granulationGain = new p5.Gain();
 let micGranulationGain = new p5.Gain();
-let micGain = 30; // You may need to increase it if your microphone isn't sensitive enough
+let micGain = 1; // You may need to increase it if your microphone isn't sensitive enough
 window.y; // global variable for yin (wavesjs-lfo)
 let freq;
-let ampThresh = 0.05;
+let ampThresh = 0.01;
 let isTalking = false;
 let speechDur = 0;
 let silenceDur = 0;
-let eloquence = 50;
+let eloquence = 50; // Eloquence gauge starts at 50
 let timerInterval = 250;
 let hasRecorded = false;
 let isRecording = false;
@@ -32,7 +32,7 @@ let isSchedulerOn = false;
 
 // Called from preload() in main.js
 function preloadSounds() {
-    whispers = loadSound('js/assets/whispers.mp3');
+    whispers = loadSound('js/assets/whispersNorm.mp3');
 }
 
 // Called from setup() in main.js
@@ -70,14 +70,14 @@ function audioLoop() {
 function playerrr() {
 	chosenBufferNumber = chooseBuffer();
 	//console.log(chosenBufferNumber);
-	if (chosenBufferNumber === 0) {
-    	let offset = floor(random(0, 16) * 2); 
+	if (chosenBufferNumber === 0 && isTalking) {
+    	let offset = Math.floor(random(0, 16) * 2);
 		if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
 		whispers.play(0, rate, 1, offset, duration); //Man rate 0.85
 	} else {
-		if (micBuffer && eloquence >= 75){
+		if (micBuffer && eloquence >= 75 && isTalking){
 			let offset = random(0, (micBuffer.duration() - duration));
-			micBuffer.play(0, rate, 1, offset, duration);
+			micBuffer.play(0, 1, 1, offset, duration);
 		}
 	}
 
@@ -88,8 +88,11 @@ function playerrr() {
 function audioAnalyser() {
 	if (micOn){
 		amp = mic.getLevel();
-		granulationGain.amp(amp * micGain, 0.1, 0);
-		micGranulationGain.amp(amp * micGain, 0.1, 0);
+		let micVolume = amp * micGain;
+		micVolume = constrain(micVolume, 0, 1);
+		//console.log(micVolume);
+		granulationGain.amp(micVolume, 0.2, 0);
+		micGranulationGain.amp(amp * micGain, 0.2, 0);
 		fft.analyze();
 		centroid = fft.getCentroid();
 		if (window.y && window.y.pitch !== -1) freq = window.y.pitch;
@@ -99,7 +102,6 @@ function audioAnalyser() {
 			isSchedulerOn = true;
 			scheduler();
 			console.log("Scheduler started!");
-
 		}
 
 		let analyserRefresh = setTimeout(audioAnalyser, audioPollFreq);
@@ -119,7 +121,6 @@ function scheduler() {
 			eloquence--; 
 		}
 		eloquence = constrain(eloquence, 0, 100);
-		console.log(eloquence);
 		// Start recording as soon as possible
 		if (!hasRecorded && isTalking && eloquence <= 75) {
 			startRecorder();
@@ -161,7 +162,7 @@ function scheduler() {
 function chooseBuffer() {
 	let bufferChoiceProbability = 1 - (eloquence / 100) + 0.7;
 	let prob = constrain(bufferChoiceProbability, 0.7, 1.0);
-	let bufferChoice = random();
+	let bufferChoice = Math.random();
 	if (bufferChoice <= prob) return 0;
 	else return 1;
 } 
@@ -172,7 +173,7 @@ function startRecorder() {
 	    recorder.record(micBuffer);
 	    isRecording = true; 
 	    console.log('Recording audio...');
-	    console.log('Eloquence :' + eloquence);
+	    //console.log('Eloquence :' + eloquence);
 	}
 }
 
