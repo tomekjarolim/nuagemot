@@ -38,6 +38,7 @@ var translation = 0;
 var translationTarget = 0;
 
 // position booleans
+var isSpawning = true;
 var isBacteria = true;
 var isWord = false;
 var isCloud = false;
@@ -65,10 +66,13 @@ var words = ["tu voyageras loin ?","n’oublie pas le pain","vers où ?","l’
 "et bien","de rien","encore heureux","rien que ça","par ailleurs","ou bien","tout simplement comment dire","de ci de là","que dalle","pour autant","vu d’ici","après tout","en vrai","d’ailleurs","quelque part","mon œil","et voilà",
 "et alors","bien entendu","pourquoi pas","d’ici peu","sous silence","d’ici là","n’importe quoi","d’autant plus","tout d’un coup","mais encore","ma parole","et encore","bref","voilà voilà","sait-on jamais","bien du plaisir","ici même"];
 
-
 // flash
 var radiusFlash = 0, radiusFlashTarget = 0;
 var alphaFlash = 0, alphaFlashTarget = 0;
+
+// spawnnig
+var flowField;
+var flowFieldPresets;
 
 // preaload images
 function preloadSketch() {
