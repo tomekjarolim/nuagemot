@@ -12,6 +12,7 @@ function Particle(_whiteID){
     this.whitePosY = random(myPixels[this.whiteID].y*scaleVal-5,myPixels[this.whiteID].y*scaleVal+5);
     this.escape = int(random(3));
     this.taille = random(2,4);
+    this.mass;
 
     this.alpha = 0;
     this.alphaTarget = 0;
@@ -37,6 +38,8 @@ function Particle(_whiteID){
 
     this.alphaSpeed = random(1,3);
 
+    this.mass = random(0.1, 2);
+
     if (this.posTarget.x <= width/2) {
         if (this.posTarget.y <= width/2) {
             this.escapePosX = int(random(-10,width/2));
@@ -54,6 +57,19 @@ function Particle(_whiteID){
             this.escapePosY = int(random(height/2,height+10));
         } 
     }
+
+    ////////////////////////////////////////////////// initiation
+
+    this.getColumnIndex = function() {
+        int index = (int)this.pos.y/columnSize;
+        return index;
+    }
+
+    void applyForce(PVector force) {
+        PVector f = PVector.div(force, 7);
+        acc.add(f);
+    }
+    //////////////////////////////////////////////////
 
     this.move = function(iterations){
 
