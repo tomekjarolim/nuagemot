@@ -25,12 +25,8 @@ let hasRecorded = false;
 let isRecording = false;
 let theEnd = false;
 let silentState = false;
-<<<<<<< HEAD
 let afterWordDuration = 20000;
 let zeroTimerDuration = 5000;
-=======
-let afterWordDuration = 10000;
->>>>>>> d795baaef5eb1d406b8c370d46247d61cc403574
 let chosenBufferNumber = 0;
 let isSchedulerOn = false;
 
