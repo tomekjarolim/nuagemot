@@ -3,7 +3,8 @@ var vangogh = 0.2;
 function Particle(_whiteID){
 
     this.vel = createVector(0, 0);
-    this.posTarget = createVector(width/2, height/2);
+    //this.posTarget = createVector(width/2, height/2);
+    this.posTarget = createVector(random(width/2-15,width/2+15), height-1);
     this.pos = createVector(this.posTarget.x, this.posTarget.y);
     this.life = random(50, maxLife);
     this.flip = int(random(0,2)) * 2 - 1;
@@ -12,10 +13,26 @@ function Particle(_whiteID){
     this.whitePosY = random(myPixels[this.whiteID].y*scaleVal-5,myPixels[this.whiteID].y*scaleVal+5);
     this.escape = int(random(3));
     this.taille = random(2,4);
-    this.mass;
 
-    this.alpha = 0;
-    this.alphaTarget = 0;
+    //
+    this.isSpawning = true;
+    this.mass = random(0.1, 2);
+    this.die = false;
+    this.acc = createVector(0,0);
+    this.speed = 0.1;
+    this.state1 = false;
+    this.state2 = false;
+    this.fallRate = 0;
+    this.speedLimit = 1.0;
+
+    this.mass = random(0.5, 2);
+    this.speed = random(0.075, 0.1);
+    this.speedLimit = this.speed * 20.0;
+    this.fallRate = random(-0.1, 0.1);
+    //
+
+    this.alpha = 255;
+    this.alphaTarget = 255;
 
     this.zoomTaille = 0;
     this.zoomTailleTarget = 0;
@@ -24,7 +41,7 @@ function Particle(_whiteID){
     this.velo.normalize();
     this.speedo = random(1,3);
 
-    this.timerStart;
+    this.timerStart = millis();
     this.timerEnd;
     this.timerDuration = int(random(1000));
 
@@ -38,9 +55,7 @@ function Particle(_whiteID){
 
     this.alphaSpeed = random(1,3);
 
-    this.mass = random(0.1, 2);
-
-    if (this.posTarget.x <= width/2) {
+    /*if (this.posTarget.x <= width/2) {
         if (this.posTarget.y <= width/2) {
             this.escapePosX = int(random(-10,width/2));
             this.escapePosY = int(random(-10,height/2));
@@ -56,27 +71,25 @@ function Particle(_whiteID){
             this.escapePosX = int(random(width/2,width+10));
             this.escapePosY = int(random(height/2,height+10));
         } 
-    }
+    }*/
 
     ////////////////////////////////////////////////// initiation
 
     this.getColumnIndex = function() {
-        int index = (int)this.pos.y/columnSize;
+        var index = this.pos.y/columnSize;
         return index;
     }
 
-    void applyForce(PVector force) {
-        PVector f = PVector.div(force, 7);
-        acc.add(f);
-    }
     //////////////////////////////////////////////////
 
     this.move = function(iterations){
 
         if (!isWord && !isEscape) {
+
             if((this.life -= 0.01666) < 0)
             this.respawn();
             while(iterations > 0){
+
                 var angle = noise(this.posTarget.x/noiseScale, this.posTarget.y/noiseScale)*TWO_PI*noiseScale*this.flip;
                 if (isBacteria) {
                     var minAngle = map(mouseX, width/10, width, -angle, angle, true);
@@ -168,6 +181,7 @@ function Particle(_whiteID){
         }
         if (isWordOver) {
             if (this.alphaTarget >= 0) this.alphaTarget-=this.alphaSpeed;
+            if (round(this.alpha) == 0) this.die = true;
         }
         stroke(255,transpBorder);
         fill(255,this.alpha);
