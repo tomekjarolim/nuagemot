@@ -11,7 +11,7 @@ let rate = 1;
 let micBuffer;
 let master = new p5.Gain();
 let granulationGain = new p5.Gain();
-let micGranulationGain = new p5.Gain();
+let audioInGain = new p5.Gain(); 
 let micGain = 10; // You may need to increase it if your microphone isn't sensitive enough
 window.y; // global variable for yin (wavesjs-lfo)
 let freq;
@@ -21,26 +21,27 @@ let speechDur = 0;
 let silenceDur = 0;
 let eloquence = 50; // Eloquence gauge starts at 50
 let timerInterval = 250;
-let hasRecorded = false;
-let isRecording = false;
 let theEnd = false;
 let silentState = false;
 let afterWordDuration = 20000;
 let zeroTimerDuration = 5000;
-let chosenBufferNumber = 0;
 let isSchedulerOn = false;
+let whispersDuration = 0; 
 
 // Called from preload() in main.js
 function preloadSounds() {
-    whispers = loadSound('js/assets/whispersNorm.mp3');
+    whispers = loadSound('js/assets/concatWhispers.mp3');
 }
 
 // Called from setup() in main.js
 function audioSetup() {
 	if (micOn) {
+		whispersDuration = whispers.duration();
 		// input
 		mic = new p5.AudioIn();
 		mic.start();
+		audioInGain.setInput(mic);
+		audioInGain.connect(master);
 		// output 
 		master.connect();
 		master.amp(1, 0.5, 0); 
@@ -50,15 +51,11 @@ function audioSetup() {
         // Recorder
         recorder = new p5.SoundRecorder();
         recorder.setInput(mic);
-        micBuffer = new p5.SoundFile();
         // Player
 		whispers.disconnect();
-		micBuffer.disconnect();
 		granulationGain.setInput(whispers);
 		granulationGain.connect(master);
-		micGranulationGain.setInput(micBuffer);
-		micGranulationGain.connect(master);
-		playerrr();
+		//playerrr();
 	}
 }
 
@@ -68,18 +65,9 @@ function audioLoop() {
 
 //	Random granulation player, amplitude is controlled by mic input
 function playerrr() {
-	chosenBufferNumber = chooseBuffer();
-	//console.log(chosenBufferNumber);
-	if (chosenBufferNumber === 0 && isTalking) {
-    	let offset = Math.floor(random(0, 16) * 2);
-		if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
-		whispers.play(0, rate, 1, offset, duration); //Man rate 0.85
-	} else {
-		if (micBuffer && eloquence >= 75 && isTalking){
-			let offset = random(0, (micBuffer.duration() - duration));
-			micBuffer.play(0, 1, 1, offset, duration);
-		}
-	}
+	let offset = Math.floor(random(whispersDuration));
+	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
+	whispers.play(0, rate, 1, offset, duration); //Man rate 0.85
 
     let metroPlayer = setTimeout(playerrr, density);
 }
@@ -121,20 +109,11 @@ function scheduler() {
 			eloquence--; 
 		}
 		eloquence = constrain(eloquence, 0, 100);
-		// Start recording as soon as possible
-		if (!hasRecorded && isTalking && eloquence <= 75) {
-			startRecorder();
-		}
-		// Stop recording when user has talked enough
-		if (eloquence >= 75){
-			stopRecorder();
-		}
+
 		// When eloquence is at its minimum, 
 		if (micOn && eloquence === 0){ 
 			// Word is displayed when eloquence hit zero
 			console.log("Eloquence gauge at zero, shutting down audio and displaying the word!"); 
-			//Stop recorder if user didn't talk enough, and turn mic off (and whispers)
-			stopRecorder();
 			micOn = false;
 			granulationGain.amp(0, 1, 0);
 			micGranulationGain.amp(0, 1, 0);
@@ -149,7 +128,6 @@ function scheduler() {
 				speechDur = 0;
 				silenceDur = 0; 
 				eloquence = 50;
-				hasRecorded = false;
 			}, afterWordDuration);
 		}		
 	}
@@ -157,32 +135,18 @@ function scheduler() {
 	timer = setTimeout(scheduler, timerInterval);
 }
 
-// Choose whether it's one or the other buffer that will be played
-// by the playerrr() function according to eloquence gauge
-function chooseBuffer() {
-	let bufferChoiceProbability = 1 - (eloquence / 100) + 0.7;
-	let prob = constrain(bufferChoiceProbability, 0.7, 1.0);
-	let bufferChoice = Math.random();
-	if (bufferChoice <= prob) return 0;
-	else return 1;
-} 
 
-// Start recording microphone into a buffer for later use
-function startRecorder() {
-	if (!isRecording) {
-	    recorder.record(micBuffer);
-	    isRecording = true; 
-	    console.log('Recording audio...');
-	    //console.log('Eloquence :' + eloquence);
-	}
-}
 
-// Stop recording to be able to use the buffer with the playerrr() function
-function stopRecorder() {
-	if (isRecording) {		
-		recorder.stop();
-		isRecording = false;
-		hasRecorded = true;
-		console.log('Recording stopped!');
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
