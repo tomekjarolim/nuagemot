@@ -19,14 +19,15 @@ let ampThresh = 0.01;
 let isTalking = false;
 let speechDur = 0;
 let silenceDur = 0;
-let eloquence = 50; // Eloquence gauge starts at 50
+let maxSilenceDur = 30;
 let timerInterval = 250;
 let theEnd = false;
 let silentState = false;
 let afterWordDuration = 20000;
-let zeroTimerDuration = 5000;
 let isSchedulerOn = false;
-let whispersDuration = 0; 
+let whispersDuration = 0;
+let filter = new p5.LowPass();
+let filteringDur = maxSilenceDur/3; 
 
 // Called from preload() in main.js
 function preloadSounds() {
@@ -41,13 +42,14 @@ function audioSetup() {
 		mic = new p5.AudioIn();
 		mic.start();
 		audioInGain.setInput(mic);
-		audioInGain.connect(master);
+		audioInGain.connect(filter);
+		filter.connect(master);
 		// output 
 		master.connect();
 		master.amp(1, 0.5, 0); 
 		// analyzer
 		fft = new p5.FFT();
-		audioAnalyser();
+		audioProcessor();
         // Recorder
         recorder = new p5.SoundRecorder();
         recorder.setInput(mic);
@@ -73,14 +75,13 @@ function playerrr() {
 }
 
 // Real time audio analysis with amp and fft at slower update frequency
-function audioAnalyser() {
+function audioProcessor() {
 	if (micOn){
 		amp = mic.getLevel();
 		let micVolume = amp * micGain;
 		micVolume = constrain(micVolume, 0, 1);
 		//console.log(micVolume);
 		granulationGain.amp(micVolume, 0.2, 0);
-		micGranulationGain.amp(amp * micGain, 0.2, 0);
 		fft.analyze();
 		centroid = fft.getCentroid();
 		if (window.y && window.y.pitch !== -1) freq = window.y.pitch;
@@ -91,8 +92,11 @@ function audioAnalyser() {
 			scheduler();
 			console.log("Scheduler started!");
 		}
+		// MICROPHONE FILTERING
+		let cutoff = Math.floor(map(silenceDur, 0, filteringDur, 10, 12000, true));
+		filter.freq(cutoff);
 
-		let analyserRefresh = setTimeout(audioAnalyser, audioPollFreq);
+		let analyserRefresh = setTimeout(audioProcessor, audioPollFreq);
 	}
 }
 
@@ -100,34 +104,26 @@ function audioAnalyser() {
 function scheduler() {
 	let timer;
 	if(isSchedulerOn === true) {
-		let zeroTimer;
 		if (isTalking){
 			speechDur++;
-			eloquence += 2; // ++ faster than --
 		} else {
 			silenceDur++;
-			eloquence--; 
 		}
-		eloquence = constrain(eloquence, 0, 100);
-
-		// When eloquence is at its minimum, 
-		if (micOn && eloquence === 0){ 
+		if (micOn && silenceDur === maxSilenceDur){ 
 			// Word is displayed when eloquence hit zero
-			console.log("Eloquence gauge at zero, shutting down audio and displaying the word!"); 
+			console.log("Too much silence, shutting down audio and displaying the word!"); 
 			micOn = false;
 			granulationGain.amp(0, 1, 0);
-			micGranulationGain.amp(0, 1, 0);
 			// End is triggered n seconds after word is displayed
 			theEnd = setTimeout(() => {
 				console.log("End of loop, listening for the next user...");
 				// unblock audio and freeze scheduler
 				micOn = true;
-				audioAnalyser();
+				audioProcessor();
 				isSchedulerOn = false;
 				console.log("Scheduler stopped!")
 				speechDur = 0;
 				silenceDur = 0; 
-				eloquence = 50;
 			}, afterWordDuration);
 		}		
 	}
