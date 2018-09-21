@@ -27,7 +27,8 @@ let afterWordDuration = 20000;
 let isSchedulerOn = false;
 let whispersDuration = 0;
 let filter = new p5.LowPass();
-let filteringDur = maxSilenceDur/3; 
+const filteringDur = maxSilenceDur/3;
+let micFilteringOn = true;
 
 // Called from preload() in main.js
 function preloadSounds() {
@@ -92,9 +93,8 @@ function audioProcessor() {
 			scheduler();
 			console.log("Scheduler started!");
 		}
-		// MICROPHONE FILTERING
-		let cutoff = Math.floor(map(silenceDur, 0, filteringDur, 10, 12000, true));
-		filter.freq(cutoff);
+		//lowpass filter on mic
+		if (isSchedulerOn === true) micFiltering(speechDur);
 
 		let analyserRefresh = setTimeout(audioProcessor, audioPollFreq);
 	}
@@ -123,7 +123,8 @@ function scheduler() {
 				isSchedulerOn = false;
 				console.log("Scheduler stopped!")
 				speechDur = 0;
-				silenceDur = 0; 
+				silenceDur = 0;
+				micFilteringOn = true;
 			}, afterWordDuration);
 		}		
 	}
@@ -131,11 +132,24 @@ function scheduler() {
 	timer = setTimeout(scheduler, timerInterval);
 }
 
-
-
-
-
-
+// Microphone filtering with exponentially increasing cutoff freq
+function micFiltering(f) {
+	if (micFilteringOn){
+		const min = 0;
+		const max = filteringDur;
+	  	let newMin = Math.log(10);
+	  	let newMax = Math.log(10000);
+	  	let scale = (newMax - newMin) / (max - min);
+	  	let cutoff = Math.exp(newMin + scale * (f - min));
+	  	cutoff = constrain(cutoff, 10, 12000);
+	  	//console.log(cutoff);
+		filter.freq(cutoff);
+		if (cutoff >= 12000) {
+			console.log("Done filtering!");
+			micFilteringOn = false;
+		}
+	}
+}
 
 
 
