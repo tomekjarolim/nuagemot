@@ -11,12 +11,22 @@
       }
       @font-face {
         font-family: futura;
-        src: url('./js/assets/futura_book.otf');
+        /*src: url('./js/assets/futura_book.otf');*/
+        src: url('./js/assets/futura_particules.otf');
       }
       #txtCss {
         position: absolute;
         top:0;
         left:0;
+      }
+      #inner {
+        z-index: 10000;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        box-shadow: 0px 0px 50px 20px rgba(0, 0, 0, 1) inset;
       }
     </style>
 
@@ -35,5 +45,6 @@
   </head>
   <body>
 
+    <div id="inner"></div>
   </body>
 </html>
