@@ -38,10 +38,11 @@ function mouseReleased() {
 }
 
 function mouseDragged() {
-  zoom = map(mouseX,0,width,-2*width,width);
+  //zoom = map(mouseX,0,width,-2*width,width);
 }
 
 function keyPressed() {
+    particles.push(new Particle(int(random(myPixels.length))));
 }
 
 function mouseMoved() {
