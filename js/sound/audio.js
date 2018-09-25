@@ -4,22 +4,27 @@ let amp = 0;
 let fft;
 let centroid = 0.0;
 const playMode = 'sustain'; // Allow overlapping players with a single audio buffer
-const audioPollFreq = 20; // ms
-let duration = 0.300;     // Duration is in seconds
-let density = 80;         // ms
+const audioPollFreq = 20;   // ms
+let duration = 0.300;       // Duration is in seconds
+let density = 80;           // ms
 let rate = 1; 
 let micBuffer;
 let master = new p5.Gain();
 let granulationGain = new p5.Gain();
 let audioInGain = new p5.Gain(); 
 let micGain = 10; // You may need to increase it if your microphone isn't sensitive enough
-window.y; // global variable for yin (wavesjs-lfo)
+window.y; 		  // global variable for yin (wavesjs-lfo)
 let freq;
 let ampThresh = 0.01;
 let isTalking = false;
 let speechDur = 0;
-let silenceDur = 0;
-let maxSilenceDur = 30;
+/////////////////////////////////////////////////////////////////////
+//                                                                 //
+//	No eloquence anymore, use those variables to trig the events   //
+//                                                                 //
+let silenceDur = 0;                                                //
+let maxSilenceDur = 30;                                            //
+/////////////////////////////////////////////////////////////////////
 let timerInterval = 250;
 let theEnd = false;
 let silentState = false;
@@ -28,7 +33,7 @@ let isSchedulerOn = false;
 let whispersDuration = 0;
 let filter = new p5.LowPass();
 const filteringDur = maxSilenceDur/3;
-let micFilteringOn = true;
+let micFilteringOn = false;
 
 // Called from preload() in main.js
 function preloadSounds() {
@@ -45,6 +50,7 @@ function audioSetup() {
 		audioInGain.setInput(mic);
 		audioInGain.connect(filter);
 		filter.connect(master);
+		micFilteringOn = true;
 		// output 
 		master.connect();
 		master.amp(1, 0.5, 0); 
@@ -66,14 +72,23 @@ function audioSetup() {
 function audioLoop() {
 }
 
-//	Random granulation player, amplitude is controlled by mic input
-function playerrr() {
-	let offset = Math.floor(random(whispersDuration));
-	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
-	whispers.play(0, rate, 1, offset, duration); //Man rate 0.85
+/*
 
-    let metroPlayer = setTimeout(playerrr, density);
-}
+
+
+		ACTUAL PLAYERRR FUNCTION IS DEPRECATED, A NEW ONE WILL BE ADDED SOON 
+
+
+
+*/
+//	Random granulation player, amplitude is controlled by mic input
+// function playerrr() {
+// 	let offset = Math.floor(random(whispersDuration));
+// 	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
+// 	whispers.play(0, rate, 1, offset, duration); //Man rate 0.85
+
+//     let metroPlayer = setTimeout(playerrr, density);
+// }
 
 // Real time audio analysis with amp and fft at slower update frequency
 function audioProcessor() {
@@ -100,6 +115,10 @@ function audioProcessor() {
 	}
 }
 
+/*
+	NO ELOQUENCE GAUGE ANYMORE... 
+	USE SILENCEDUR AND MAXSILENCEDUR TO TRIG THE WORD
+*/
 // Dynamic timeline handler
 function scheduler() {
 	let timer;
@@ -109,8 +128,9 @@ function scheduler() {
 		} else {
 			silenceDur++;
 		}
-		if (micOn && silenceDur === maxSilenceDur){ 
-			// Word is displayed when eloquence hit zero
+		// TRUST THIS TEST :
+		if (micOn && silenceDur === maxSilenceDur){  
+			// Word is displayed when silenceDur exceeds maxSlienceDur value
 			console.log("Too much silence, shutting down audio and displaying the word!"); 
 			micOn = false;
 			granulationGain.amp(0, 1, 0);
