@@ -12,7 +12,7 @@
 *
 */
 
-let micOn = true;
+let micOn = false;
 let recordState = 0;
 
 function preload() {
@@ -28,7 +28,7 @@ function setup() {
 
 function draw() {
     drawSketch();
-    audioLoop();
+    //audioLoop();
 }
 
 function mousePressed() {
