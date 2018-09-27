@@ -4,7 +4,7 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
 
     this.vel = createVector(0, 0);
 
-    if (int(random(10)) == 0) this.superParticle = true;
+    if (int(random(20)) == 0) this.superParticle = true;
     else this.superParticle = false;
 
     this.posTarget = createVector(_originX+random(-35,35),_originY+random(-35,35));
@@ -17,6 +17,11 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
     this.whitePosY = random(myPixels[this.whiteID].y*scaleVal-5,myPixels[this.whiteID].y*scaleVal+5);
     this.escape = int(random(3));
     this.taille = random(minRadus);
+
+    this.color = color(255);
+
+    this.angleParticle = random(-3.14,3.14);
+    this.factorParticle = random(1,6);
 
     this.easingZoom = 0.01;
 
@@ -43,6 +48,8 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
     this.cornerRadius = 0;
 
     this.alphaSpeed = random(1,3);
+
+    this.scaleValue = 1;
 
     // escape
     var angleB = random(TWO_PI);
@@ -91,8 +98,8 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
 
         if (isWord) {
             if (millis()-this.timerStart > this.timerDuration) {
-                this.posTarget.x = this.whitePosX+random(-this.shaking,this.shaking*6);
-                this.posTarget.y = this.whitePosY+random(-this.shaking,this.shaking*6);
+                this.posTarget.x = this.whitePosX+random(-this.shaking,this.shaking*3);
+                this.posTarget.y = this.whitePosY+random(-this.shaking,this.shaking*3);
             }
         }
 
@@ -139,6 +146,20 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
         }
 
     }
+
+    this.checkSize = function(){
+
+        let distVal = dist(width/2,height/2-100, this.pos.x, this.pos.y)
+        if (distVal > 300) {
+            this.color = color(252,0,0);
+            this.scaleValue = map(distVal, 300, 1000, 3, 0.5);
+        } else {
+            this.color = color(252);
+            this.scaleValue = 2;
+        }
+
+    }
+
   
     this.respawn = function(){
 
@@ -146,8 +167,8 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
 
             this.posTarget.x = random(0, width);
             this.posTarget.y = random(0, height);
-            this.pos.x = this.posTarget.x;
-            this.pos.y = this.posTarget.y;
+            /*this.pos.x = this.posTarget.x;
+            this.pos.y = this.posTarget.y;*/
             this.life = maxLife;
             if (!isBacteria) this.alphaTarget = 255;
             else {
@@ -180,26 +201,34 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
             fill(255,this.alpha);
             texture(img);
             translate(this.pos.x, this.pos.y);
-            plane(r+this.zoomTaille, r+this.zoomTaille);
+            plane((r+this.zoomTaille)*this.scaleValue, (r+this.zoomTaille)*this.scaleValue);
 
         }
 
         else if (particleShape == 1) {
 
             noStroke();
-            if (this.superParticle) fill(255,0,0,this.alpha);
-            else fill(255,this.alpha);
-            ellipse(this.pos.x, this.pos.y, r+this.zoomTaille, r+this.zoomTaille);
+            fill(255,this.alpha);
+            //fill(this.color,this.alpha);
+            ellipse(this.pos.x, this.pos.y, (r+this.zoomTaille)*this.scaleValue, (r+this.zoomTaille)*this.scaleValue);
 
+        }
+
+        else if (particleShape == 2) {
+
+            noStroke();
+            fill(255,this.alpha);
+            translate(this.pos.x, this.pos.y);
+            plane((r+this.zoomTaille)*this.scaleValue, (r+this.zoomTaille)*this.scaleValue);
         }
 
         else {
 
             noStroke();
-            if (this.superParticle) fill(255,0,0,this.alpha);
-            else fill(255,this.alpha);
+            fill(255,this.alpha);
             translate(this.pos.x, this.pos.y);
-            plane(r+this.zoomTaille, /*r+this.zoomTaille*/1);
+            rotate(this.angleParticle);
+            plane(((r+this.zoomTaille)*this.factorParticle)*this.scaleValue, 2);
         }
 
         pop();
