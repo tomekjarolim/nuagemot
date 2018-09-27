@@ -11,6 +11,8 @@ let rate = 1;
 let micBuffer;
 let master = new p5.Gain();
 let granulationGain = new p5.Gain();
+let whispersGain = new p5.Gain();
+let instrumentsGain = new p5.Gain();
 let audioInGain = new p5.Gain(); 
 let micGain = 10; // You may need to increase it if your microphone isn't sensitive enough
 window.y; 		  // global variable for yin (wavesjs-lfo)
@@ -25,15 +27,21 @@ let speechDur = 0;
 let silenceDur = 0;                                                //
 let maxSilenceDur = 30;                                            //
 /////////////////////////////////////////////////////////////////////
-let timerInterval = 250;
+let timerInterval = 1000;
 let theEnd = false;
 let silentState = false;
 let afterWordDuration = 20000;
 let isSchedulerOn = false;
 let whispersDuration = 0;
 let filter = new p5.LowPass();
-const filteringDur = maxSilenceDur/3;
+const filteringDur = maxSilenceDur/4;
 let micFilteringOn = false;
+// X-FADE STRUCTURE
+const instrumentsStartTime = 20;
+const whispersFadeStartTime = 10;
+const whispersFadeEndTime = 15;
+const speechFadeStartTime = 12;
+const speechFadeEndTime = instrumentsStartTime;
 
 // Called from preload() in main.js
 function preloadSounds() {
@@ -50,6 +58,7 @@ function audioSetup() {
 		audioInGain.setInput(mic);
 		audioInGain.connect(filter);
 		filter.connect(master);
+		filter.amp(1, 0.2, 0);
 		micFilteringOn = true;
 		// output 
 		master.connect();
@@ -60,11 +69,17 @@ function audioSetup() {
         // Recorder
         recorder = new p5.SoundRecorder();
         recorder.setInput(mic);
-        // Player
+        // Whisper Player
 		whispers.disconnect();
 		granulationGain.setInput(whispers);
-		granulationGain.connect(master);
-		//playerrr();
+		granulationGain.connect(whispersGain);
+		whispersGain.connect(master);
+		whispersGain.amp(0, 0.2, 0);
+		// Instruments Player
+		//instruments.disconnect();
+		//instrumentsGain.setInput(instruments);
+		//instrumentsGain.connect(master);
+		//whispersGain.amp(1, 0.2, 0);
 	}
 }
 
@@ -74,21 +89,17 @@ function audioLoop() {
 
 /*
 
-
-
 		ACTUAL PLAYERRR FUNCTION IS DEPRECATED, A NEW ONE WILL BE ADDED SOON 
-
-
 
 */
 //	Random granulation player, amplitude is controlled by mic input
-// function playerrr() {
-// 	let offset = Math.floor(random(whispersDuration));
-// 	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
-// 	whispers.play(0, rate, 1, offset, duration); //Man rate 0.85
+function playerrr() {
+	let offset = Math.floor(random(whispersDuration));
+	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
+	whispers.play(0, rate, 1, offset, duration); //Man rate 0.85
 
-//     let metroPlayer = setTimeout(playerrr, density);
-// }
+    let metroPlayer = setTimeout(playerrr, density);
+}
 
 // Real time audio analysis with amp and fft at slower update frequency
 function audioProcessor() {
@@ -125,6 +136,7 @@ function scheduler() {
 	if(isSchedulerOn === true) {
 		if (isTalking){
 			speechDur++;
+			xFade();
 		} else {
 			silenceDur++;
 		}
@@ -146,7 +158,8 @@ function scheduler() {
 				silenceDur = 0;
 				micFilteringOn = true;
 			}, afterWordDuration);
-		}		
+		}
+		if (micOn && speechDur > whispersFadeStartTime && !whispers.isPlaying()) playerrr();
 	}
 	
 	timer = setTimeout(scheduler, timerInterval);
@@ -171,12 +184,17 @@ function micFiltering(f) {
 	}
 }
 
-
-
-
-
-
-
-
-
-
+// Crossfade between audio input (down) and whispers (up)
+// TODO : add fadein for instruments (no fadeout)
+function xFade() {
+	if (speechDur >= speechFadeStartTime && speechDur <= speechFadeEndTime){
+		let vol = map(speechDur, speechFadeStartTime, speechFadeEndTime, 1, 0);
+		filter.amp(vol, 0.2, 0);
+		//console.log("Natural voice fading down: " + vol);
+	}
+	if (speechDur >= whispersFadeStartTime && speechDur <= whispersFadeEndTime){
+		let vol = map(speechDur, whispersFadeStartTime, whispersFadeEndTime, 0, 1);
+		whispersGain.amp(vol, 0.2, 0);
+		//console.log("Whispers fading up: " + vol);
+	}
+}
