@@ -6,7 +6,7 @@ let fft;
 let centroid = 0.0;
 const playMode = 'sustain'; // Allow overlapping players with a single audio buffer
 const audioPollFreq = 20;   // ms
-let duration = 0.300;       // Duration is in seconds
+let defaultDuration = 0.300;       // Duration is in seconds
 let density = 80;           // ms
 let rate = 1; 
 let micBuffer;
@@ -29,6 +29,7 @@ let silentState = false;
 let afterWordDuration = 10000;
 let isSchedulerOn = false;
 let whispersDuration = 0;
+let pianoDuration = 0;
 let filter = new p5.LowPass();
 const filteringDur = 6;
 let micFilteringOn = false;
@@ -44,17 +45,21 @@ let tessInc = 0;
 let tessArray = []
 let hasRecordedPitch = false;
 let gotTessitura = false;
+// Piano player
+const midScale = [];
+const hiScale = [];
 
 // Called from preload() in main.js
 function preloadSounds() {
     whispers = loadSound('js/assets/concatWhispers.mp3');
-    //piano = loadSound('js/assets/piano.mp3');
+    piano = loadSound('js/assets/piano.mp3');
 }
 
 // Called from setup() in main.js
 function audioSetup() {
 	if (micOn) {
 		whispersDuration = whispers.duration();
+		pianoDuration = piano.duration();
 		// input
 		mic = new p5.AudioIn();
 		mic.start();
@@ -94,7 +99,7 @@ function audioLoop() {
 function playerrr() {
 	let offset = Math.floor(random(whispersDuration));
 	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
-	whispers.play(0, rate, 1, offset, duration); //Man rate 0.85
+	whispers.play(0, rate, 1, offset, defaultDuration); //Man rate 0.85
 
     let metroPlayer = setTimeout(playerrr, density);
 }
@@ -138,7 +143,7 @@ function scheduler() {
 		}
 		if (hasRecordedPitch === true && !gotTessitura) {
 			getTessitura();
-			console.log(tessitura);
+			//console.log(tessitura);
 			gotTessitura = true;
 		}	
 		if (micOn && silenceDur === maxSilenceDur){  
@@ -165,7 +170,7 @@ function scheduler() {
 			playerrr();
 		}
 	}
-	
+
 	timer = setTimeout(scheduler, timerInterval);
 }
 
@@ -203,9 +208,26 @@ function xFade() {
 	}
 }
 
-// function pianoPlayer() {
-// 	//let pianoTimeout = setTimeout(pianoPlayer, noteInterval);
-// }
+function pianoPlayer() {
+	if(tessitura === 'low'){
+		// Vienna
+		let offset = Math.floor(random(pianoDuration / 4)) * 4;
+		let duration = random(0.05, 0.2);
+		let noteInterval = random(0.05, 0.2);
+	} else if (tessitura === 'mid'){
+		// Debussy
+		//let offset =
+		//let duration = 
+		//let noteInterval = 
+	} else if (tessitura === 'hi'){
+		// Tonal
+		//let offset =
+		//let duration = 
+		//let noteInterval = 
+	}
+	piano.play(0, 1, 1, offset, duration);
+	let pianoTimeout = setTimeout(pianoPlayer, noteInterval);
+}
 
 function getPitch() {
 	if (!hasRecordedPitch){ 
@@ -233,4 +255,3 @@ function getTessitura() {
 		tessitura = 'hi';
 	}
 }
-
