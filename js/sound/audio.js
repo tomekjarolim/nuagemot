@@ -20,13 +20,8 @@ let freq;
 let ampThresh = 0.01;
 let isTalking = false;
 let speechDur = 0;
-/////////////////////////////////////////////////////////////////////
-//                                                                 //
-//	No eloquence anymore, use those variables to trig the events   //
-//                                                                 //
-let silenceDur = 0;                                                //
-let maxSilenceDur = 30;                                            //
-/////////////////////////////////////////////////////////////////////
+let silenceDur = 0;
+let maxSilenceDur = 30;
 let timerInterval = 1000;
 let theEnd = false;
 let silentState = false;
@@ -75,7 +70,7 @@ function audioSetup() {
 		granulationGain.connect(whispersGain);
 		whispersGain.connect(master);
 		whispersGain.amp(0, 0.2, 0);
-		// Instruments Player
+		// Instruments Player (TODO)
 		//instruments.disconnect();
 		//instrumentsGain.setInput(instruments);
 		//instrumentsGain.connect(master);
@@ -87,11 +82,6 @@ function audioSetup() {
 function audioLoop() {
 }
 
-/*
-
-		ACTUAL PLAYERRR FUNCTION IS DEPRECATED, A NEW ONE WILL BE ADDED SOON 
-
-*/
 //	Random granulation player, amplitude is controlled by mic input
 function playerrr() {
 	let offset = Math.floor(random(whispersDuration));
@@ -126,10 +116,6 @@ function audioProcessor() {
 	}
 }
 
-/*
-	NO ELOQUENCE GAUGE ANYMORE... 
-	USE SILENCEDUR AND MAXSILENCEDUR TO TRIG THE WORD
-*/
 // Dynamic timeline handler
 function scheduler() {
 	let timer;
@@ -140,7 +126,6 @@ function scheduler() {
 		} else {
 			silenceDur++;
 		}
-		// TRUST THIS TEST :
 		if (micOn && silenceDur === maxSilenceDur){  
 			// Word is displayed when silenceDur exceeds maxSlienceDur value
 			console.log("Too much silence, shutting down audio and displaying the word!"); 
@@ -159,7 +144,10 @@ function scheduler() {
 				micFilteringOn = true;
 			}, afterWordDuration);
 		}
-		if (micOn && speechDur > whispersFadeStartTime && !whispers.isPlaying()) playerrr();
+		if (micOn && speechDur > whispersFadeStartTime && !whispers.isPlaying()) {
+			console.log("Whipers are fading in!")
+			playerrr();
+		}
 	}
 	
 	timer = setTimeout(scheduler, timerInterval);
@@ -190,11 +178,11 @@ function xFade() {
 	if (speechDur >= speechFadeStartTime && speechDur <= speechFadeEndTime){
 		let vol = map(speechDur, speechFadeStartTime, speechFadeEndTime, 1, 0);
 		filter.amp(vol, 0.2, 0);
-		//console.log("Natural voice fading down: " + vol);
+		//console.log("Natural voice fading out: " + vol);
 	}
 	if (speechDur >= whispersFadeStartTime && speechDur <= whispersFadeEndTime){
 		let vol = map(speechDur, whispersFadeStartTime, whispersFadeEndTime, 0, 1);
 		whispersGain.amp(vol, 0.2, 0);
-		//console.log("Whispers fading up: " + vol);
+		//console.log("Whispers fading in: " + vol);
 	}
 }

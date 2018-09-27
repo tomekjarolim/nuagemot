@@ -12,7 +12,7 @@
 *
 */
 
-let micOn = false;
+let micOn = true;
 let recordState = 0;
 
 function preload() {

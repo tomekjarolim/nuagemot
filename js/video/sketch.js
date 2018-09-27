@@ -97,7 +97,7 @@ function preloadSketch() {
 // initial settings
 function initSketch() {
 
-    nums = 1200;
+    nums = 500;
     backgroundColor = color(0);
 
     createCanvas(windowWidth, windowHeight, WEBGL);
@@ -113,7 +113,7 @@ function initSketch() {
 
     ctx.fillStyle = "#000000";
     ctx.fillRect(0,0,txtCanvas.width, txtCanvas.height);
-    ctx.font = "80px futura";
+    ctx.font = "40px futura";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText(currentWord, txtCanvas.width/2, txtCanvas.height/2); 
@@ -125,7 +125,7 @@ function initSketch() {
 
     ctx.fillStyle = "#000000";
     ctx.fillRect(0,0,txtCanvas.width, txtCanvas.height);
-    ctx.font = "80px futura";
+    ctx.font = "40px futura";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText(currentWord, txtCanvas.width/2, txtCanvas.height/2); 
@@ -219,21 +219,21 @@ function initState() {
         particles[i].alphaTarget = 255;
     }
 
-    talkStarted = true;
-
     ////// BG
 
-    /*if (!isBacteria) {
+    if (!isBacteria && !isFlocking) {
         if (toto > 5) {
-            if (transpBGTarget > 10) transpBGTarget-=20;
+            if (transpBGTarget > 5) transpBGTarget-=20;
         }
-    } else transpBGTarget = int(random(10,255));*/
-    transpBGTarget = 5;
+    } else transpBGTarget = int(random(6,35));
+    //transpBGTarget = 5;
 
 }
 
 // draw skecth
 function drawSketch() {
+
+    smooth();
 
     if (zoomTarget>=0) zoomTarget-=2;
 
@@ -241,7 +241,7 @@ function drawSketch() {
 
         let toto = amp*500;
 
-        if (toto > 5 && eloquence > 0) {
+        if (toto > 5 && speechDur > 0) {
 
             ////// create particle
             if (particles.length < 2000 && !isWord && !isTooLoud && freq < 300) {
@@ -254,6 +254,7 @@ function drawSketch() {
             if (!talkStarted) {
 
                 initState();
+                talkStarted = true;
 
             }
 
@@ -339,7 +340,7 @@ function drawSketch() {
 
         } else {
 
-            if (eloquence == 0 && hasTalked) {
+            if (silenceDur == maxSilenceDur && hasTalked) {
 
                 talkStarted = false; 
                 isFlocking = false;
@@ -357,7 +358,7 @@ function drawSketch() {
                     currentWord = currentWord = words[round(random(words.length))];
                     ctx.fillStyle = "#000000";
                     ctx.fillRect(0,0,txtCanvas.width, txtCanvas.height);
-                    ctx.font = "80px futura";
+                    ctx.font = "40px futura";
                     ctx.fillStyle = "white";
                     ctx.textAlign = "center";
                     ctx.fillText(currentWord, txtCanvas.width/2, txtCanvas.height/2); 
@@ -378,6 +379,7 @@ function drawSketch() {
                         particles[i].whitePosX = random(myPixels[pos].x*scaleVal-5,myPixels[pos].x*scaleVal+5);
                         particles[i].whitePosY = random(myPixels[pos].y*scaleVal-5,myPixels[pos].y*scaleVal+5);
                         particles[i].shaking = speechDuration/10+5;
+                        particles[i].scaleValue = 0.6;
                     }
 
                     startTimer = millis();
@@ -440,10 +442,10 @@ function drawSketch() {
 
             if (isTooLoud && particles[i] != null) {
                 if (millis()-tooLoudTimer > 2000) {
-                    isTooLoud = false;
                     particles[i].posTarget.x = random(width);
                     particles[i].posTarget.y = random(height);
                     particles[i].depthTarget = random(-width,-1);
+                    isTooLoud = false;
                 }
             }
 
@@ -456,6 +458,8 @@ function drawSketch() {
         if (onHighPicthEvent) onHighPicthEvent = false;
 
     }
+
+    console.log(isTooLoud);
 
     translate(-width/2,-height/2,0);
 
@@ -499,6 +503,7 @@ function drawSketch() {
             if (!isFlocking) particles[i].move(iterations);
             else particles[i].setVelo(posX, posY, noise (frameCount / 300.0));
             particles[i].checkEdge();
+            particles[i].checkSize();
         }
             
         let particleColor;
