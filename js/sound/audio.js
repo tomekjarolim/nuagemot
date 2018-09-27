@@ -25,11 +25,11 @@ let maxSilenceDur = 10;
 let timerInterval = 1000;
 let theEnd = false;
 let silentState = false;
-let afterWordDuration = 5000;
+let afterWordDuration = 10000;
 let isSchedulerOn = false;
 let whispersDuration = 0;
 let filter = new p5.LowPass();
-const filteringDur = maxSilenceDur/4;
+const filteringDur = 6;
 let micFilteringOn = false;
 // X-FADE STRUCTURE
 const instrumentsStartTime = 20;
@@ -130,7 +130,8 @@ function scheduler() {
 			// Word is displayed when silenceDur exceeds maxSlienceDur value
 			console.log("Too much silence, shutting down audio and displaying the word!"); 
 			micOn = false;
-			granulationGain.amp(0, 1, 0);
+			whispersGain.amp(0, 1, 0);
+			filter.amp(0, 1, 0);
 			// End is triggered n seconds after word is displayed
 			theEnd = setTimeout(() => {
 				console.log("End of loop, listening for the next user...");
