@@ -1,4 +1,5 @@
 let whispers;
+let piano;
 let mic;
 let amp = 0;
 let fft;
@@ -37,10 +38,17 @@ const whispersFadeStartTime = 10;
 const whispersFadeEndTime = 15;
 const speechFadeStartTime = 12;
 const speechFadeEndTime = instrumentsStartTime;
+// TESSITURA
+let tessitura = '';
+let tessInc = 0;
+let tessArray = []
+let hasRecordedPitch = false;
+let gotTessitura = false;
 
 // Called from preload() in main.js
 function preloadSounds() {
     whispers = loadSound('js/assets/concatWhispers.mp3');
+    //piano = loadSound('js/assets/piano.mp3');
 }
 
 // Called from setup() in main.js
@@ -102,6 +110,8 @@ function audioProcessor() {
 		fft.analyze();
 		centroid = fft.getCentroid();
 		if (window.y && window.y.pitch !== -1) freq = window.y.pitch;
+		// Get tessitura at start
+		if(freq) getPitch();
 		// isTalking threshold
 		isTalking = (amp >= ampThresh) ? true : false;
 		if (isSchedulerOn === false && isTalking) {
@@ -126,6 +136,11 @@ function scheduler() {
 		} else {
 			silenceDur++;
 		}
+		if (hasRecordedPitch === true && !gotTessitura) {
+			getTessitura();
+			console.log(tessitura);
+			gotTessitura = true;
+		}	
 		if (micOn && silenceDur === maxSilenceDur){  
 			// Word is displayed when silenceDur exceeds maxSlienceDur value
 			console.log("Too much silence, shutting down audio and displaying the word!"); 
@@ -187,3 +202,35 @@ function xFade() {
 		//console.log("Whispers fading in: " + vol);
 	}
 }
+
+// function pianoPlayer() {
+// 	//let pianoTimeout = setTimeout(pianoPlayer, noteInterval);
+// }
+
+function getPitch() {
+	if (!hasRecordedPitch){ 
+		++tessInc;
+		if (tessInc < 100){ 
+			tessArray.push(freq);
+		} else {
+			hasRecordedPitch = true;
+			tessInc = 0;
+		}
+	}
+}
+
+function getTessitura() {
+	let sum = 0;
+	// get average pitch
+	tessArray.forEach((e) => sum += e);
+	let average = sum / tessArray.length;
+	// get tessitura
+	if (average < 100){
+		tessitura = 'low';
+	} else if (average > 100 && average < 200){
+		tessitura = 'mid';
+	} else if (average > 200){
+		tessitura = 'hi';
+	}
+}
+
