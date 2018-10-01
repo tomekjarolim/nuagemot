@@ -35,11 +35,13 @@ let filter = new p5.LowPass();
 const filteringDur = 6;
 let micFilteringOn = false;
 // X-FADE STRUCTURE
-const instrumentsStartTime = 20;
+const pianoStartTime = 20;
+const pianoFadeEndTime = 22;
 const whispersFadeStartTime = 10;
 const whispersFadeEndTime = 15;
 const speechFadeStartTime = 12;
-const speechFadeEndTime = instrumentsStartTime;
+const speechFadeEndTime = pianoStartTime;
+let continuousWhispers = false;
 // TESSITURA
 let tessitura = '';
 let tessInc = 0;
@@ -113,7 +115,15 @@ function audioProcessor() {
 		let micVolume = amp * micGain;
 		micVolume = constrain(micVolume, 0, 1);
 		//console.log(micVolume);
-		granulationGain.amp(micVolume, 0.2, 0);
+		//
+		//	Should whispers be continuous ? ////////////
+		//                                            //
+		if (continuousWhispers === false){            //
+			granulationGain.amp(micVolume, 0.2, 0);   //
+		} else {                                      //
+			granulationGain.amp(1, 2, 0);             //
+		}                                             //
+		////////////////////////////////////////////////
 		fft.analyze();
 		centroid = fft.getCentroid();
 		if (window.y && window.y.pitch !== -1) freq = window.y.pitch;
@@ -122,12 +132,15 @@ function audioProcessor() {
 		// isTalking threshold
 		isTalking = (amp >= ampThresh) ? true : false;
 		if (isSchedulerOn === false && isTalking) {
+			// INIT PARAMS BEFORE NEW USER
 			isSchedulerOn = true;
 			hasRecordedPitch = false;
 			gotTessitura = false;
+			continuousWhispers = false;
+			// RESTART NEW EXP
 			scheduler();
 			console.log("Scheduler started!");
-			master.amp(1, 0.2, 0)
+			//master.amp(1, 0.2, 0)
 		}
 		//lowpass filter on mic
 		if (isSchedulerOn === true) micFiltering(speechDur);
@@ -152,14 +165,14 @@ function scheduler() {
 			console.log(tessitura);
 			gotTessitura = true;
 		}
-		if (micOn && silenceDur === maxSilenceDur){  
+		// 						===
+		if (micOn && silenceDur > maxSilenceDur){  
 			// Word is displayed when silenceDur exceeds maxSlienceDur value
 			console.log("Too much silence, shutting down audio and displaying the word!"); 
 			micOn = false;
-			// whispersGain.amp(0, 1, 0);
-			// filter.amp(0, 1, 0);
-			// whispersGain.amp(0, 1, 0);
-			master.amp(0, 1, 0);
+			whispersGain.amp(0, 1, 0);
+			filter.amp(0, 1, 0);
+			//master.amp(0, 1, 0);
 			// End is triggered n seconds after word is displayed
 			theEnd = setTimeout(() => {
 				console.log("End of loop, listening for the next user...");
@@ -176,6 +189,12 @@ function scheduler() {
 		if (micOn && speechDur > whispersFadeStartTime && !whispers.isPlaying()) {
 			console.log("Whipers are fading in!")
 			playerrr();
+		}
+		if (micOn && speechDur > pianoStartTime && !piano.isPlaying()) {
+			console.log("Piano notes are fading in!")
+			pianoPlayer();
+			//continuous whispers during piano stage
+			continuousWhispers = true;
 		}
 	}
 
@@ -212,6 +231,11 @@ function xFade() {
 	if (speechDur >= whispersFadeStartTime && speechDur <= whispersFadeEndTime){
 		let vol = map(speechDur, whispersFadeStartTime, whispersFadeEndTime, 0, 1);
 		whispersGain.amp(vol, 0.2, 0);
+		//console.log("Whispers fading in: " + vol);
+	}
+	if (speechDur >= pianoStartTime && speechDur){
+		let vol = map(speechDur, whispersFadeStartTime, whispersFadeEndTime, 0, 1);
+		pianoGain.amp(vol, 0.2, 0);
 		//console.log("Whispers fading in: " + vol);
 	}
 }
