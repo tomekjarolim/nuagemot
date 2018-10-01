@@ -13,7 +13,8 @@ let micBuffer;
 let master = new p5.Gain();
 let granulationGain = new p5.Gain();
 let whispersGain = new p5.Gain();
-let instrumentsGain = new p5.Gain();
+let pianoGain = new p5.Gain();
+let pianoNoteGain = new p5.Gain(); 
 let audioInGain = new p5.Gain(); 
 let micGain = 10; // You may need to increase it if your microphone isn't sensitive enough
 window.y; 		  // global variable for yin (wavesjs-lfo)
@@ -46,8 +47,8 @@ let tessArray = []
 let hasRecordedPitch = false;
 let gotTessitura = false;
 // Piano player
-const midScale = [];
-const hiScale = [];
+const hiScale = [96, 112, 124, 144, 160, 172, 192];
+let pianoTimeout;
 
 // Called from preload() in main.js
 function preloadSounds() {
@@ -84,15 +85,16 @@ function audioSetup() {
 		whispersGain.connect(master);
 		whispersGain.amp(0, 0.2, 0);
 		// Instruments Player (TODO)
-		//instruments.disconnect();
-		//instrumentsGain.setInput(instruments);
-		//instrumentsGain.connect(master);
-		//whispersGain.amp(1, 0.2, 0);
+		piano.disconnect();
+		pianoNoteGain.setInput(piano);
+		pianoNoteGain.connect(pianoGain);
+		pianoGain.connect(master);
+		pianoGain.amp(1, 0.2, 0);
 	}
 }
 
 // Called from draw() in main.js
-function audioLoop() {
+function audioLoop() {	
 }
 
 //	Random granulation player, amplitude is controlled by mic input
@@ -121,12 +123,15 @@ function audioProcessor() {
 		isTalking = (amp >= ampThresh) ? true : false;
 		if (isSchedulerOn === false && isTalking) {
 			isSchedulerOn = true;
+			hasRecordedPitch = false;
+			gotTessitura = false;
 			scheduler();
 			console.log("Scheduler started!");
+			master.amp(1, 0.2, 0)
 		}
 		//lowpass filter on mic
 		if (isSchedulerOn === true) micFiltering(speechDur);
-
+		
 		let analyserRefresh = setTimeout(audioProcessor, audioPollFreq);
 	}
 }
@@ -141,17 +146,20 @@ function scheduler() {
 		} else {
 			silenceDur++;
 		}
+		// Example of a test that enables tessitura function call only once 
 		if (hasRecordedPitch === true && !gotTessitura) {
 			getTessitura();
-			//console.log(tessitura);
+			console.log(tessitura);
 			gotTessitura = true;
-		}	
+		}
 		if (micOn && silenceDur === maxSilenceDur){  
 			// Word is displayed when silenceDur exceeds maxSlienceDur value
 			console.log("Too much silence, shutting down audio and displaying the word!"); 
 			micOn = false;
-			whispersGain.amp(0, 1, 0);
-			filter.amp(0, 1, 0);
+			// whispersGain.amp(0, 1, 0);
+			// filter.amp(0, 1, 0);
+			// whispersGain.amp(0, 1, 0);
+			master.amp(0, 1, 0);
 			// End is triggered n seconds after word is displayed
 			theEnd = setTimeout(() => {
 				console.log("End of loop, listening for the next user...");
@@ -208,31 +216,40 @@ function xFade() {
 	}
 }
 
+// TODO : 
 function pianoPlayer() {
+	let offset;
+	let duration;
+	let noteInterval;
 	if(tessitura === 'low'){
-		// Vienna
-		let offset = Math.floor(random(pianoDuration / 4)) * 4;
-		let duration = random(0.05, 0.2);
-		let noteInterval = random(0.05, 0.2);
+		// Vienna - random notes and duration - fast
+		offset = Math.floor(random(pianoDuration / 4)) * 4;
+		duration = random(0.1, 2);
+		noteInterval = random(75, 250);
 	} else if (tessitura === 'mid'){
-		// Debussy
-		//let offset =
-		//let duration = 
-		//let noteInterval = 
+		// Debussy - long notes - whole-tone scale - mid 
+		offset = (Math.floor(random(14, pianoDuration / 8)) * 8) - 40;
+		duration = random(1.5, 2.5);
+		noteInterval = random(100, 300);
 	} else if (tessitura === 'hi'){
-		// Tonal
-		//let offset =
-		//let duration = 
-		//let noteInterval = 
+		// Tonal - fixed duration - triads - C for now, will add F, Am, G, etc.
+		offset = hiScale[Math.floor(random(hiScale.length))];
+		duration = 1;
+		noteInterval = random(190, 250);
+	} else {
+		console.log(`Didn't get tessitura? tessitura is ${tessitura ? tessitura : "empty"}`);
 	}
-	piano.play(0, 1, 1, offset, duration);
-	let pianoTimeout = setTimeout(pianoPlayer, noteInterval);
+	//console.log(`offset: ${offset} duration: ${duration} noteInterval: ${noteInterval}`)
+	if (offset) piano.play(0, 1, 1, offset, duration);
+	clearTimeout(pianoTimeout);
+
+	pianoTimeout = setTimeout(pianoPlayer, noteInterval);
 }
 
 function getPitch() {
 	if (!hasRecordedPitch){ 
 		++tessInc;
-		if (tessInc < 100){ 
+		if (tessInc < 50){ 
 			tessArray.push(freq);
 		} else {
 			hasRecordedPitch = true;
@@ -247,11 +264,11 @@ function getTessitura() {
 	tessArray.forEach((e) => sum += e);
 	let average = sum / tessArray.length;
 	// get tessitura
-	if (average < 100){
+	if (average < 115){
 		tessitura = 'low';
-	} else if (average > 100 && average < 200){
+	} else if (average > 115 && average < 170){
 		tessitura = 'mid';
-	} else if (average > 200){
+	} else if (average > 170){
 		tessitura = 'hi';
 	}
 }
