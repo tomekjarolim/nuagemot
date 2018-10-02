@@ -34,6 +34,11 @@ let pianoDuration = 0;
 let filter = new p5.LowPass();
 const filteringDur = 6;
 let micFilteringOn = false;
+// TIMEOUTS
+let metroPlayerTimeout;
+let analyserTimeout;
+let pianoTimeout;
+let schedulerTimeout;
 // X-FADE STRUCTURE
 const pianoStartTime = 20;
 const pianoFadeEndTime = 22;
@@ -50,8 +55,6 @@ let hasRecordedPitch = false;
 let gotTessitura = false;
 // Piano player
 const hiScale = [96, 112, 124, 144, 160, 172, 192];
-let pianoTimeout;
-
 // Called from preload() in main.js
 function preloadSounds() {
     whispers = loadSound('js/assets/concatWhispersMono.mp3');
@@ -105,7 +108,7 @@ function playerrr() {
 	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
 	whispers.play(0, rate, 1, offset, defaultDuration); //Man rate 0.85
 
-    let metroPlayer = setTimeout(playerrr, density);
+    metroPlayerTimeout = setTimeout(playerrr, density);
 }
 
 // Real time audio analysis with amp and fft at slower update frequency
@@ -132,26 +135,18 @@ function audioProcessor() {
 		// isTalking threshold
 		isTalking = (amp >= ampThresh) ? true : false;
 		if (isSchedulerOn === false && isTalking) {
-			// INIT PARAMS BEFORE NEW USER
 			isSchedulerOn = true;
-			hasRecordedPitch = false;
-			gotTessitura = false;
-			continuousWhispers = false;
-			// RESTART NEW EXP
-			scheduler();
-			console.log("Scheduler started!");
-			//master.amp(1, 0.2, 0)
+			audioInit();
 		}
 		//lowpass filter on mic
 		if (isSchedulerOn === true) micFiltering(speechDur);
 		
-		let analyserRefresh = setTimeout(audioProcessor, audioPollFreq);
+		analyserTimeout = setTimeout(audioProcessor, audioPollFreq);
 	}
 }
 
 // Dynamic timeline handler
 function scheduler() {
-	let timer;
 	if(isSchedulerOn === true) {
 		if (isTalking){
 			speechDur++;
@@ -166,9 +161,16 @@ function scheduler() {
 			gotTessitura = true;
 		}
 		// 						===
-		if (micOn && silenceDur > maxSilenceDur){  
+		if (micOn && silenceDur > maxSilenceDur){
+			console.log("Too much silence, shutting down (w/ fadeout) audio and displaying the word!"); 
+			// START FADEOUT ///////////////////////////////////////////////////////////////////
+			//
+			//	Enventually set a timeout in a timeout? Or use masterFadeOutEnd to trigger stop
+			//				modify micOn stuff? maybe not needed, audio can conitnue w/o micOn
+			//
+			////////////////////////////////////////////////////////////////////////////////////
 			// Word is displayed when silenceDur exceeds maxSlienceDur value
-			console.log("Too much silence, shutting down audio and displaying the word!"); 
+			
 			micOn = false;
 			whispersGain.amp(0, 1, 0);
 			filter.amp(0, 1, 0);
@@ -176,14 +178,7 @@ function scheduler() {
 			// End is triggered n seconds after word is displayed
 			theEnd = setTimeout(() => {
 				console.log("End of loop, listening for the next user...");
-				// unblock audio and freeze scheduler
-				micOn = true;
-				audioProcessor();
-				isSchedulerOn = false;
-				console.log("Scheduler stopped!")
-				speechDur = 0;
-				silenceDur = 0;
-				micFilteringOn = true;
+				audioStop();
 			}, afterWordDuration);
 		}
 		if (micOn && speechDur > whispersFadeStartTime && !whispers.isPlaying()) {
@@ -198,7 +193,7 @@ function scheduler() {
 		}
 	}
 
-	timer = setTimeout(scheduler, timerInterval);
+	schedulerTimeout = setTimeout(scheduler, timerInterval);
 }
 
 // Microphone filtering with exponentially increasing cutoff freq
@@ -233,10 +228,11 @@ function xFade() {
 		//console.log("Whispers fading in: " + vol);
 	}
 	if (speechDur >= pianoStartTime && speechDur){
-		let vol = map(speechDur, whispersFadeStartTime, whispersFadeEndTime, 0, 1);
+		let vol = map(speechDur, whispersFadeStartTime, whispersFadeEndTime, 0, 0.7);
 		pianoGain.amp(vol, 0.2, 0);
 		//console.log("Whispers fading in: " + vol);
 	}
+	if ()
 }
 
 // TODO : 
@@ -294,4 +290,24 @@ function getTessitura() {
 	} else if (average > 170){
 		tessitura = 'hi';
 	}
+}
+
+function audioInit() {
+	clearTimeout(metroPlayerTimeout);
+	clearTimeout(pianoTimeout);
+	clearTimeout(schedulerTimeout);
+	speechDur = 0;
+	silenceDur = 0;
+	micFilteringOn = true;
+	hasRecordedPitch = false;
+	gotTessitura = false;
+	continuousWhispers = false;
+	scheduler();
+	console.log("Scheduler started!");
+}
+
+function audioStop() {
+	audioProcessor(); 
+	isSchedulerOn = false;
+	console.log("Scheduler stopped!");
 }
