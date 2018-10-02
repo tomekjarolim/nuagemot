@@ -54,7 +54,7 @@ let pianoTimeout;
 
 // Called from preload() in main.js
 function preloadSounds() {
-    whispers = loadSound('js/assets/concatWhispers.mp3');
+    whispers = loadSound('js/assets/concatWhispersMono.mp3');
     piano = loadSound('js/assets/piano.mp3');
 }
 
@@ -221,7 +221,6 @@ function micFiltering(f) {
 }
 
 // Crossfade between audio input (down) and whispers (up)
-// TODO : add fadein for instruments (no fadeout)
 function xFade() {
 	if (speechDur >= speechFadeStartTime && speechDur <= speechFadeEndTime){
 		let vol = map(speechDur, speechFadeStartTime, speechFadeEndTime, 1, 0);
