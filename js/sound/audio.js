@@ -1,15 +1,12 @@
 // SOUNDFILES
 let whispers;
-let piano;
 let whispersHaveBeenPlayed = false;
-let pianoHasBeenPlayed = false;
+let continuousWhispersTriggered = false;
 let shouldPlayersBeOn = false;
 // MIX
 let master = new p5.Gain();
 let granulationGain = new p5.Gain();
 let whispersGain = new p5.Gain();
-let pianoGain = new p5.Gain();
-let pianoNoteGain = new p5.Gain();
 let audioInGain = new p5.Gain();
 let micGain = 10; // You may need to increase it if your microphone isn't sensitive enough
 let isMasterFadingOut = false;
@@ -31,8 +28,8 @@ let silentState = false;
 let afterWordDuration = 10000;
 let isSchedulerOn = false;
 let whispersDuration = 0;
-let pianoDuration = 0;
 let hasWordBeenDisplayed = false;
+let continuousWhispers = false;
 // SPEECHDUR
 let speechDur = 0;
 const fadeEasing = 0.01;
@@ -40,14 +37,13 @@ let smoothSpeechDur = 0;
 // SILENCEDUR
 let silenceDur = 0;
 let maxSilenceDur = 10;
-// X-FADE STRUCTURE
-const pianoStartTime = 15;
-const pianoFadeEndTime = 18;
-const whispersFadeStartTime = 4;
-const whispersFadeEndTime = 6;
-const speechFadeStartTime = 8;
-const speechFadeEndTime = whispersFadeEndTime;
-let continuousWhispers = false;
+// X-FADE STRUCTURE //////////////////////////////////////////
+const continuousWhispersStartTime = 15;                     //
+const whispersFadeStartTime =       4;                      //
+const whispersFadeEndTime =         6;                      //
+const speechFadeStartTime =         8;                      //
+const speechFadeEndTime =           whispersFadeEndTime;    //
+//////////////////////////////////////////////////////////////
 // FILTERING
 let filter = new p5.LowPass();
 const filteringDur = whispersFadeEndTime - 2;
@@ -61,17 +57,12 @@ let gotTessitura = false;
 // WHISPERS PLAYER
 let whisperPlayer;
 let whisperState = 0;
-// PIANO PLAYER
-let pianoPlayer;
-const hiScale = [96, 112, 124, 144, 160, 172, 192];
 // INSTANTS PLAYER
 let instants = []; 
 
 // Called from preload() in main.js
 function preloadSounds() {
     whispers = loadSound('js/assets/allWhispersConcat.mp3');
-    // piano = loadSound('js/assets/piano.mp3');
-    piano = loadSound('js/assets/pia.mp3'); // 22050 version
     for (let i = 0; i < 15; i++){
     	instants[i] = loadSound('js/assets/instants/' + i + '.mp3');
     }
@@ -83,7 +74,6 @@ function audioSetup() {
 		// AUDIO SETTINGS
 		const playMode = 'sustain';
 		whispersDuration = whispers.duration();
-		pianoDuration = piano.duration();
 		// input
 		mic = new p5.AudioIn();
 		mic.start();
@@ -106,13 +96,6 @@ function audioSetup() {
 		granulationGain.connect(whispersGain);
 		whispersGain.connect(master);
 		whispersGain.amp(0, 0.2, 0);
-		// Piano Player 
-		piano.disconnect();
-		pianoNoteGain.setInput(piano);
-		pianoNoteGain.disconnect();
-		pianoNoteGain.connect(pianoGain);
-		pianoGain.connect(master);
-		pianoGain.amp(0, 0.2, 0);
 		/*
 		*
 		*	p5.SoundLoop used instead of the old seTimeOuts
@@ -134,13 +117,6 @@ function audioSetup() {
 		whispersPlayer = new p5.SoundLoop(() => {
 			if (shouldPlayersBeOn === true) whisperFragment(defaultDuration, rate);
 		}, whispersInterval);
-		// Piano Player
-		let offset;
-		let duration;
-		let noteInterval;
-		pianoPlayer = new p5.SoundLoop(() => {
-			if(shouldPlayersBeOn) playPianoNote(offset, duration, noteInterval)
-		}, 1);
 		// Scheduler
 		const schedulerInterval = 1;
 		schedulerLoop = new p5.SoundLoop(() => {
@@ -149,11 +125,10 @@ function audioSetup() {
 	}
 }
 
-// Called from draw() in main.js
-function audioLoop() {	
-}
-
-// Real time audio handling at slower update frequency
+/* 
+*	Real time audio handling at slower update frequency
+*	Default: 20ms
+*/
 function audioProcessor() {	
 	amp = mic.getLevel();
 	let micVolume = amp * micGain;
@@ -180,10 +155,10 @@ function audioProcessor() {
 	if (isMasterFadingOut) masterFadeOut();
 }
 
-
 /*
 *	Dynamic timeline handler
-*	To be called from a loop at a very slow interval (1s for instance)
+*	To be called from a loop at a very slow interval
+*	Default: 1s
 */
 function scheduler() {
 	if (isTalking){
@@ -212,7 +187,7 @@ function scheduler() {
 		}, afterWordDuration);
 	}
 	if (micOn && speechDur > whispersFadeStartTime && !whispers.isPlaying() && !whispersHaveBeenPlayed) {
-		console.log("Whipers are fading in, speechDur = " + speechDur)
+		console.log("Whipers are fading in...");
 		shouldPlayersBeOn = true;
 		whispersPlayer.start();
 		whispersHaveBeenPlayed = true;
@@ -220,31 +195,29 @@ function scheduler() {
 	if(isTalking && whispersFadeStartTime > 0) {
 		whisperState = chooseWhisperState();
 	}
-	if (micOn && speechDur > pianoStartTime && !piano.isPlaying() && !pianoHasBeenPlayed) {
-		console.log("Piano notes are fading in!")
+	if (micOn && speechDur > continuousWhispersStartTime && !continuousWhispersTriggered) {
+		console.log("Continuous whispers were triggered!")
 		shouldPlayersBeOn = true;
-		//pianoPlayer.start();
-		//pianoHasBeenPlayed = true;
-		//continuous whispers during piano stage
+		continuousWhispersTriggered = true;
 		continuousWhispers = true;
 	} else {
-		continousWhisperts = false;
+		continuousWhispers = false;
 	}
 }
 
 /* 
 *	Microphone filtering
-*	exponentially increasing cutoff freq !!!NOT ANYMORE!!!
+*
+*       lo must be high enough to be heard...
+*       but the words must remain blurry
+*                                             
+*                                             lo   hi
+*
+*                                             |    |
+*                                             V    V
 */
 function micFiltering(f) {
 	if (micFilteringOn){
-		// const min = 0;
-		// const max = filteringDur;
-	 	// let newMin = Math.log(10);
-	 	// let newMax = Math.log(10000);
-	 	// let scale = (newMax - newMin) / (max - min);
-	 	// let cutoff = Math.exp(newMin + scale * (f - min));
-	 	// cutoff = constrain(cutoff, 10, 12000);
 		let cutoff = map(f, 0, filteringDur, 100, 400);
 		//console.log(cutoff);
 		filter.freq(cutoff);
@@ -269,41 +242,12 @@ function xFade() {
 		let vol = map(smoothSpeechDur, whispersFadeStartTime, whispersFadeEndTime, 0, 1, true);
 		whispersGain.amp(vol, 0.2, 0);
 	}
-	if (speechDur >= pianoStartTime && speechDur){
-		let vol = map(smoothSpeechDur, whispersFadeEndTime, pianoFadeEndTime, 0, 0.2, true);
-		pianoGain.amp(vol, 0.2, 0);
-	}
 }
 
 /*
-*	Plays a single piano note according to tessitura
-*	The function has to be called inside a loop 
+*	Record pitch values in an array when talking for the first time
+*	The bigger tessArray is (default is 50), the more precise it gets
 */
-function playPianoNote(offset, duration, noteInterval){
-	// Vienna - random notes and duration - fast
-	if(tessitura === 'low'){ 
-		offset = Math.floor(random(pianoDuration / 4)) * 4;
-		duration = random(0.1, 2);
-		noteInterval = random(0.1, 0.250);
-	// Debussy - long notes - whole-tone scale - mid 
-	} else if (tessitura === 'mid'){
-		offset = (Math.floor(random(14, pianoDuration / 8)) * 8) - 40;
-		duration = random(1.5, 2.5);
-		noteInterval = random(0.100, 0.300);
-	// Tonal - fixed duration - triads - C for now, will add F, Am, G, etc.
-	} else if (tessitura === 'hi'){
-		offset = hiScale[Math.floor(random(hiScale.length))];
-		duration = 1;
-		noteInterval = random(0.190, 0.250);
-	} else {
-		console.log(`Didn't get tessitura? tessitura is ${tessitura ? tessitura : "empty"}`);
-		console.log("Setting tessitura to low by default!");
-		tessitura = 'low';
-	}
-	pianoPlayer.interval = noteInterval;
-	if (offset) piano.play(0, 1, 1, offset, duration);
-}
-
 function getPitch() {
 	if (!hasRecordedPitch){ 
 		++tessInc;
@@ -316,6 +260,11 @@ function getPitch() {
 	}
 }
 
+/*
+*	Get average pitch (tessitura) from previously recorded values
+*	Sets the tessitura global variable to 'low' 'mid' or 'hi' 
+*	depending on hardcoded values
+*/
 function getTessitura() {
 	let sum = 0;
 	// get average pitch
@@ -334,10 +283,13 @@ function getTessitura() {
 	}
 }
 
+/*
+*	Init function called at the beginning of a new exp. 
+*/
 function audioInit() {
 	stopLoops(); // FRESH START
 	shouldPlayersBeOn = false;
-	pianoHasBeenPlayed = false;
+	continuousWhispersTriggered = false;
 	whispersHaveBeenPlayed = false;
 	hasWordBeenDisplayed = false;
 	speechDur = 0;
@@ -352,7 +304,6 @@ function audioInit() {
 	// Turn audio back on 
 	master.amp(1, 0.2, 0);
 	filter.amp(1, 0.2, 0);
-	pianoGain.amp(0, 0.2, 0);
 	whispersGain.amp(0, 0.2, 0);
 	// scheduler loop starter
 	isSchedulerOn = true;
@@ -363,6 +314,9 @@ function audioInit() {
 	console.log("Scheduler started!");
 }
 
+/*
+*	Stop function called at the end of the current exp. 
+*/
 function audioStop() {
 	shouldPlayersBeOn = false;
 	stopLoops();
@@ -384,16 +338,23 @@ function audioStop() {
 */
 function stopLoops() {
 	if (whispers.isPlaying()) whispersPlayer.stop();
-	if (piano.isPlaying()) pianoPlayer.stop();
 	if (isSchedulerOn) schedulerLoop.stop();
 }
 
+/*
+*	Master fadeout function, called when the word is displayed
+*/
 function masterFadeOut() {
 	master.amp(masterVolume, 0.1, 0);
 	if (masterVolume > 0) masterVolume -= 0.004;
 	if (masterVolume < 0) isMasterFadingOut = false;
 }
 
+/*
+*	Whispers granulation function,
+*	To be called from a loop
+*	offset depends on whisperState
+*/
 function whisperFragment(defaultDuration, rate) {
 	switch(whisperState){
 		case 0:
@@ -416,7 +377,13 @@ function whisperFragment(defaultDuration, rate) {
 	whispers.play(0, rate, 1, offset, defaultDuration);
 }
 
-function chooseWhisperState() {
+/*
+*	Returns the whisperState depending on speechDur
+*	Change these values to schedule whisperState differently :
+*
+*                                           |
+*///                                        |
+function chooseWhisperState() {//           V
 	let theWhisperState = 0;
 	if(speechDur > (whispersFadeStartTime + 3)) theWhisperState = 0;
 	if(speechDur > (whispersFadeStartTime + 6)) theWhisperState = 1;
