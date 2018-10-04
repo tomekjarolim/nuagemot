@@ -13,7 +13,6 @@
 */
 
 let micOn = true;
-let recordState = 0;
 
 function preload() {
     preloadSketch();
@@ -23,30 +22,8 @@ function preload() {
 function setup() {
     initSketch();
     audioSetup();
-    //noCursor();
 }
 
 function draw() {
     drawSketch();
-    //audioLoop();
-}
-
-function mousePressed() {
-}
-
-function mouseReleased() {
-}
-
-function mouseDragged() {
-  //zoom = map(mouseX,0,width,-2*width,width);
-}
-
-function keyPressed() {
-    particles.push(new Particle(int(random(myPixels.length))));
-}
-
-function mouseMoved() {
-    //maxSpeed = map(mouseX, width/10, width*9/10, 10, 0.4, true);
-    //simulationSpeed = map(mouseX, 0, width, 2, maxSpeed, true);
-    //transpBGTarget = map(mouseY, 0, height, 255, 5);
 }
