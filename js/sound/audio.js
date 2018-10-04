@@ -67,7 +67,8 @@ const hiScale = [96, 112, 124, 144, 160, 172, 192];
 // Called from preload() in main.js
 function preloadSounds() {
     whispers = loadSound('js/assets/concatWhispersMono.mp3');
-    piano = loadSound('js/assets/piano.mp3');
+    // piano = loadSound('js/assets/piano.mp3');
+    piano = loadSound('js/assets/pia.mp3'); // 22050 version
 }
 
 // Called from setup() in main.js
