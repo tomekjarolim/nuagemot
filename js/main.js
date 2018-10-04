@@ -42,7 +42,7 @@ function mouseDragged() {
 }
 
 function keyPressed() {
-    particles.push(new Particle(int(random(myPixels.length))));
+    //particles.push(new Particle(int(random(myPixels.length))));
 }
 
 function mouseMoved() {

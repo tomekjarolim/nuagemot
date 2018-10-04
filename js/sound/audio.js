@@ -12,13 +12,13 @@ let pianoGain = new p5.Gain();
 let pianoNoteGain = new p5.Gain();
 let audioInGain = new p5.Gain();
 let micGain = 10; // You may need to increase it if your microphone isn't sensitive enough
-let masterVol = 1; 
+let isMasterFadingOut = false;
 // AUDIO IN
 let mic;
 let amp = 0;
 let fft;
 let centroid = 0.0;
-let ampThresh = 0.01;
+let ampThresh = 0.001;
 let isTalking = false;
 window.y; // global variable for yin (wavesjs-lfo)
 let freq;
@@ -43,8 +43,8 @@ let maxSilenceDur = 10;
 // X-FADE STRUCTURE
 const pianoStartTime = 15;
 const pianoFadeEndTime = 18;
-const whispersFadeStartTime = 6;
-const whispersFadeEndTime = 10;
+const whispersFadeStartTime = 4;
+const whispersFadeEndTime = 6;
 const speechFadeStartTime = 8;
 const speechFadeEndTime = whispersFadeEndTime;
 let continuousWhispers = false;
@@ -175,6 +175,7 @@ function audioProcessor() {
 	micFiltering(smoothSpeechDur);
 	// Crossfade function
 	xFade();
+	if (isMasterFadingOut) masterFadeOut();
 }
 
 
@@ -197,7 +198,8 @@ function scheduler() {
 		console.log("Too much silence, shutting down (w/ fadeout) audio and displaying the word!"); 
 		hasWordBeenDisplayed = true;
 		// START FADEOUT
-		master.amp(0, 5, 0);
+		isMasterFadingOut = true; 
+		//master.amp(0, 5, 0);
 		// End is triggered n seconds after word is displayed
 		theEnd = setTimeout(() => {
 			console.log("End of loop, listening for the next user...");
@@ -213,8 +215,8 @@ function scheduler() {
 	if (micOn && speechDur > pianoStartTime && !piano.isPlaying() && !pianoHasBeenPlayed) {
 		console.log("Piano notes are fading in!")
 		shouldPlayersBeOn = true;
-		pianoPlayer.start();
-		pianoHasBeenPlayed = true;
+		//pianoPlayer.start();
+		//pianoHasBeenPlayed = true;
 		//continuous whispers during piano stage
 		continuousWhispers = true;
 	} else {
@@ -235,7 +237,7 @@ function micFiltering(f) {
 	 	// let scale = (newMax - newMin) / (max - min);
 	 	// let cutoff = Math.exp(newMin + scale * (f - min));
 	 	// cutoff = constrain(cutoff, 10, 12000);
-		let cutoff = map(f, 0, filteringDur, 30, 500);
+		let cutoff = map(f, 0, filteringDur, 100, 400);
 		//console.log(cutoff);
 		filter.freq(cutoff);
 		// if (cutoff >= 12000) {
@@ -347,6 +349,9 @@ function audioInit() {
 	// scheduler loop starter
 	isSchedulerOn = true;
 	schedulerLoop.start();
+	// master volume init
+	masterVolumeTarget = 1;
+	masterVolume = 1;
 	console.log("Scheduler started!");
 }
 
@@ -373,4 +378,10 @@ function stopLoops() {
 	if (whispers.isPlaying()) whispersPlayer.stop();
 	if (piano.isPlaying()) pianoPlayer.stop();
 	if (isSchedulerOn) schedulerLoop.stop();
+}
+
+function masterFadeOut() {
+	master.amp(masterVolume, 0.1, 0);
+	if (masterVolume > 0) masterVolume -= 0.004;
+	if (masterVolume < 0) isMasterFadingOut = false;
 }
