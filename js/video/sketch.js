@@ -4,7 +4,7 @@ var particles = [];
 var nums;
 var particleDensity = 4000;
 var noiseScale = 800;
-var maxLife = 5;
+var maxLife = 20;
 var maxSpeed = 30;
 var simulationSpeed = /*0.2*/0;
 var fadeFrame = 0;
@@ -80,6 +80,8 @@ var isHighPitch = false;
 var highPitchCounter = 0;
 var highThreshold = false;
 
+var nbMax = 1000;
+
 // preaload images
 function preloadSketch() {
 
@@ -146,12 +148,13 @@ function initState() {
     changePitch = false;
     waitFreq = -1;
     isWordOver = false;
-    radiusTarget = round(random(10,30));
+    radiusTarget = round(random(20,30));
     radius = radiusTarget;
     particleShape = round(random(4));
     ellipseRadius = 0.3;
     hasTalked = false;
     isWord = false;
+    switchToWord = false;
 
 isReady = true;
 isEmpty = true;
@@ -160,7 +163,6 @@ isEmpty = true;
         particles[i].zoomTailleTarget = 0;
         particles[i].shaking = 0;
         particles[i].radiusTarget = minRadus;
-        //particles[i].alphaTarget = 255;
         particles[i].factorParticle = random(1,6);
     }
 
@@ -168,8 +170,7 @@ isEmpty = true;
     if (!isBacteria && !isFlocking) transpBGTarget = 205;
     else {
         let rndBg = round(random(1));
-        if (rndBg == 0) transpBGTarget = 10;
-        //transpBGTarget = 8;
+        if (rndBg == 0) transpBGTarget = 20;
         else transpBGTarget = 205;
         if (particleShape == 3) transpBGTarget = 205;
     }
@@ -183,16 +184,12 @@ function drawSketch() {
 
     if (amp && freq) {
 
-        //console.log("isReady "+isReady);
-        //console.log("nb Part "+particles.length);
-
-        if (/*toto > 5*/isTalking && speechDur > 0 && isReady) {
-
-            console.log("vol detected");
+        if (/*toto > 5*/isTalking && speechDur > 0) {
 
             ////// create particle
-            if (particles.length < 800 && !isWord && !isTooLoud /*&& isEmpty*/) {
-                changeToLuciole = true;
+            if (particles.length < nbMax && !isWord && !isTooLoud) {
+
+                //changeToLuciole = true;
                 for (var i=0; i<3; i++) {
                     particles.push(new Particle( int(random(myPixels.length)), random(-width,-1) , 100000 , width/2 , height/2+100 ));
                 }
@@ -232,7 +229,7 @@ function drawSketch() {
             hasTalked = true;
             isWord = false;
             simulationSpeed = toto;
-            switchToWord = false;
+            //switchToWord = false;
 
             if (freq < 100) highThreshold = false;
             if (freq > 300) highThreshold = true;
@@ -253,14 +250,14 @@ function drawSketch() {
             for(var i = 0; i < particles.length; i++) {
 
                 if (onHighPicthEvent) {
-                    if (particles[i] != null && particles[i].superParticle && particles.length < 800) {
+                    if (particles[i] != null && particles[i].superParticle && particles.length < nbMax) {
                         for (let i=0; i<5; i++) {
                             particles.push(new Particle( int(random(myPixels.length)), particles[i].depth , particles[i].depth , particles[i].pos.x, particles[i].pos.y ));
                         }
                     }   
                 }
 
-                if (particles[i] != null && toto > 100 && tessitura != 'mid') {
+                if (particles[i] != null && toto > 50 && tessitura != 'mid' && tessitura != 'hi') {
                     isTooLoud = true;
                     isTooLoudFinish = false;
                     tooLoudTimer = millis();
@@ -284,9 +281,8 @@ function drawSketch() {
 
         } else {
 
-            if (silenceDur >= maxSilenceDur && /*hasTalked*/ !hasWordBeenDisplayed && micOn) {
+            if (silenceDur > maxSilenceDur && hasTalked) {
 
-               // talkStarted = false; 
                 isFlocking = false;
                 isWord = true;
 
@@ -353,7 +349,7 @@ function drawSketch() {
         for(var i = 0; i < particles.length; i++) {
 
             if (isFlocking) {
-                particles[i].zoomTailleTarget = 5;
+                particles[i].zoomTailleTarget = 20;
                 particles[i].speedo = amp*300+1;
             } else {
                 if (!isBacteria) {
@@ -363,14 +359,14 @@ function drawSketch() {
             }
 
             if (onHighPicthEvent) {
-                if (particles[i] != null && particles[i].superParticle && particles.length < 800) {
+                if (particles[i] != null && particles[i].superParticle && particles.length < nbMax) {
                     for (let i=0; i<5; i++) {
                         particles.push(new Particle( int(random(myPixels.length)), particles[i].depth , particles[i].depth , particles[i].pos.x, particles[i].pos.y ));
                     }
                 }
             }
 
-            if (particles[i] != null && toto > 100 && tessitura != 'mid') {
+            if (particles[i] != null && toto > 50 && tessitura != 'mid' && tessitura != 'hi') {
                 isTooLoud = true;
                 isTooLoudFinish = false;
                 tooLoudTimer = millis();
@@ -381,7 +377,7 @@ function drawSketch() {
             }
 
             if (isTooLoud && particles[i] != null) {
-                if (millis()-tooLoudTimer > 2000) {
+                if (millis()-tooLoudTimer > 1500) {
                     particleShape = 5;
                     particles[i].posTarget.x = 30;
                     particles[i].posTarget.y = 20;
@@ -406,7 +402,6 @@ function drawSketch() {
     pop();
 
     if (isWord) {
-        isReady = false;
         if (millis()-startTimer > wordDuration) {
             isWord = false;
             isWordOver = true;
@@ -420,7 +415,7 @@ function drawSketch() {
 
     if (!isBacteria && !isFlocking) {
         if (toto > 3) {
-            if (transpBGTarget > 10) transpBGTarget-=30;
+            if (transpBGTarget > 20) transpBGTarget-=30;
         } else {
             if (transpBGTarget < 205) transpBGTarget += 15;
         }
@@ -439,7 +434,7 @@ function drawSketch() {
         }
      
         particles[i].display(radius);
-        particles[i].zoomTaille += (particles[i].zoomTailleTarget - particles[i].zoomTaille) * 0.05;
+        particles[i].zoomTaille += (particles[i].zoomTailleTarget - particles[i].zoomTaille) * 0.1;
         particles[i].alpha += (particles[i].alphaTarget-particles[i].alpha)*0.1;
         particles[i].depth += (particles[i].depthTarget-particles[i].depth)*0.1;
         particles[i].pos.x += (particles[i].posTarget.x - particles[i].pos.x) * 0.1;
@@ -449,11 +444,8 @@ function drawSketch() {
 
         if (particles.length == 0) {
             talkStarted = false; 
-            isReady = true;
             isEmpty = true;
-        } else  {
-            isEmpty = false;
-        }
+        } else isEmpty = false;
 
     }
 

@@ -21,6 +21,11 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
     this.torusStart = millis();
     this.torusEasing = false;
 
+    this.vangoghStart = millis();
+    this.vangoghReposition = false;
+
+    this.lineSize = int(random(2,6));
+
     // position in word
     this.whiteID = _whiteID;
     this.whitePosX = random(myPixels[this.whiteID].x*scaleVal-5,myPixels[this.whiteID].x*scaleVal+5);
@@ -39,11 +44,12 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
 
     this.factorParticle = random(1,6);
 
-    this.zoomTailleTarget = /*random(30)*/10;
-    this.zoomTaille = 0;
+    this.zoomTailleTarget = 10;
+    this.zoomTaille = 5;
     this.zoomTailleWord = random(1,7);
 
     this.alphaTarget = map(this.zoomTailleTarget,0,30,255,3);
+    this.refAlpha = this.alphaTarget;
     this.alpha = 0;
 
     this.velo = createVector(random(-1, 1), random(-1, 1));
@@ -66,11 +72,11 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
     this.scaleValue = 0;
 
     //alpha Luciole
-    if (changeToLuciole) {
+    //if (changeToLuciole) {
         let l = int(random(40));
         this.zoomTailleTarget = l;
         this.alphaTarget = map(l,0,40,105,3);
-    }
+    //}
 
     //zoomTailleTarget = 0;
 
@@ -90,7 +96,7 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
                     var minAngle = map(amp, width/10, width, -angle, angle, true);
                     this.vel.x = cos( /*(minAngle,angle)*/ random(angle-2,angle+2) );
                     this.vel.y = sin( /*(minAngle,angle)*/ angle );
-                    this.vel.mult(simulationSpeed/2);
+                    this.vel.mult(simulationSpeed);
                 } else {
                     this.vel.x = cos(angle);
                     this.vel.y = sin(angle);
@@ -160,9 +166,9 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
     this.respawn = function(){
 
         if (!isWord) {
-            if (isTooLoudFinish) {
-                this.posTarget.x = random(0, width);
-                this.posTarget.y = random(0, height);
+            if (isTooLoudFinish) { 
+                this.posTarget.x = random(width);
+                this.posTarget.y = random(height);
                 this.pos.x = this.posTarget.x;
                 this.pos.y = this.posTarget.y;
             } else {
@@ -175,7 +181,7 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
                 this.alpha = 0;
                 var l = int(random(40));
                 this.zoomTailleTarget = l;
-                this.alphaTarget = map(l,0,40,255,3);
+                this.alphaTarget = map(l,0,40,255,50);
             //}
         }
 
@@ -187,12 +193,23 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
         push();
         translate(0,0,this.depth);
 
+        if (transpBGTarget < 50) this.alphaTarget == this.refAlpha/3;
+
+        if (!isBacteria) {
+            if (millis()-this.vangoghStart > 2000 && !this.vangoghReposition) {
+                this.posTarget.x = width/2 + cos(random(TWO_PI)) * 300;
+                this.posTarget.y = height/2 + sin(random(TWO_PI)) * 300;
+                this.vangoghReposition = true;
+            }
+        } 
+
         if (isWord) {
             this.zoomTailleTarget = this.zoomTailleWord;
             this.depthTarget = 0;
             this.factorParticle = random(1,6);
             this.scaleValue = 1;
             this.torusSizeTarget = 3;
+            this.alphaTarget = random(150,255);
         } else this.torusSizeTarget = 30;
 
         if (isWordOver) {
@@ -203,14 +220,16 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
         if (particleShape == 0) { // ellipses
             if (millis()-this.torusStart > 1000) this.torusSize += (this.torusSizeTarget - this.torusSize) * 0.1;
             fill(255,this.alpha/4);
+            noStroke();
             translate(this.pos.x, this.pos.y);
             torus(this.torusSize, 1);
         }
 
         else if (particleShape == 1) { // ronds
             noStroke();
-            fill(255,this.alpha/2);
-            ellipse(this.pos.x, this.pos.y, (r+this.zoomTaille)*this.scaleValue, (r+this.zoomTaille)*this.scaleValue);
+            if (transpBGTarget < 100) fill(255,this.alpha/10);
+            else fill(255,this.alpha/4);
+            ellipse(this.pos.x, this.pos.y, (r+this.zoomTaille), (r+this.zoomTaille));
         }
 
         else if (particleShape == 2) { // lignes
@@ -218,7 +237,7 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
             fill(255,this.alpha);
             translate(this.pos.x, this.pos.y);
             rotate(this.angleParticle/4);
-            plane((r+this.zoomTaille)*this.scaleValue*this.factorParticle, 2);
+            plane((r+this.zoomTaille)*this.lineSize, 2);
         }
         else if (particleShape == 3) { // carrés
             noStroke();

@@ -60,15 +60,21 @@ let hasRecordedPitch = false;
 let gotTessitura = false;
 // WHISPERS PLAYER
 let whisperPlayer;
+let whisperState = 0;
 // PIANO PLAYER
 let pianoPlayer;
 const hiScale = [96, 112, 124, 144, 160, 172, 192];
+// INSTANTS PLAYER
+let instants = []; 
 
 // Called from preload() in main.js
 function preloadSounds() {
-    whispers = loadSound('js/assets/concatWhispersMono.mp3');
+    whispers = loadSound('js/assets/allWhispersConcat.mp3');
     // piano = loadSound('js/assets/piano.mp3');
     piano = loadSound('js/assets/pia.mp3'); // 22050 version
+    for (let i = 0; i < 15; i++){
+    	instants[i] = loadSound('js/assets/instants/' + i + '.mp3');
+    }
 }
 
 // Called from setup() in main.js
@@ -126,11 +132,7 @@ function audioSetup() {
 		let rate = 1;
 		const whispersInterval = 0.08; // in seconds
 		whispersPlayer = new p5.SoundLoop(() => {
-			if (shouldPlayersBeOn === true){
-				let offset = Math.floor(random(whispersDuration));
-				if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
-				whispers.play(0, rate, 1, offset, defaultDuration); //Man rate 0.85
-			}
+			if (shouldPlayersBeOn === true) whisperFragment(defaultDuration, rate);
 		}, whispersInterval);
 		// Piano Player
 		let offset;
@@ -197,8 +199,11 @@ function scheduler() {
 	if (micOn && silenceDur > maxSilenceDur && !hasWordBeenDisplayed){
 		console.log("Too much silence, shutting down (w/ fadeout) audio and displaying the word!"); 
 		hasWordBeenDisplayed = true;
+		//micOn = false;
 		// START FADEOUT
-		isMasterFadingOut = true; 
+		isMasterFadingOut = true;
+		let chosenInstant = Math.floor(random(instants.length));
+		instants[chosenInstant].play(0, 1, 0.1, 0, instants[chosenInstant].duration());
 		//master.amp(0, 5, 0);
 		// End is triggered n seconds after word is displayed
 		theEnd = setTimeout(() => {
@@ -211,6 +216,9 @@ function scheduler() {
 		shouldPlayersBeOn = true;
 		whispersPlayer.start();
 		whispersHaveBeenPlayed = true;
+	}
+	if(isTalking && whispersFadeStartTime > 0) {
+		whisperState = chooseWhisperState();
 	}
 	if (micOn && speechDur > pianoStartTime && !piano.isPlaying() && !pianoHasBeenPlayed) {
 		console.log("Piano notes are fading in!")
@@ -384,4 +392,35 @@ function masterFadeOut() {
 	master.amp(masterVolume, 0.1, 0);
 	if (masterVolume > 0) masterVolume -= 0.004;
 	if (masterVolume < 0) isMasterFadingOut = false;
+}
+
+function whisperFragment(defaultDuration, rate) {
+	switch(whisperState){
+		case 0:
+			offset = Math.floor(random(14));  // -> Taha
+			break;
+		case 1: 
+			offset = Math.floor(random(26));  // -> Siyaiboue
+			break;
+		case 2:
+			offset = Math.floor(random(37));  // -> Amine
+			break;
+		case 3:
+			offset = Math.floor(random(54));  // -> Evelyne
+			break;
+		default:
+			offset = Math.floor(random(14));  // -> Taha (default)
+			break;
+	}
+	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
+	whispers.play(0, rate, 1, offset, defaultDuration);
+}
+
+function chooseWhisperState() {
+	let theWhisperState = 0;
+	if(speechDur > (whispersFadeStartTime + 3)) theWhisperState = 0;
+	if(speechDur > (whispersFadeStartTime + 6)) theWhisperState = 1;
+	if(speechDur > (whispersFadeStartTime + 9)) theWhisperState = 2;
+	if(speechDur > (whispersFadeStartTime + 12)) theWhisperState = 3;
+	return theWhisperState;
 }
