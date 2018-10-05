@@ -171,7 +171,7 @@ function scheduler() {
 		console.log(tessitura);
 		gotTessitura = true;
 	}					
-	if (micOn && silenceDur > maxSilenceDur && !hasWordBeenDisplayed){
+	if (micOn && silenceDur > maxSilenceDur && !hasWordBeenDisplayed && particles.length != 0){
 		console.log("Too much silence, shutting down (w/ fadeout) audio and displaying the word!"); 
 		hasWordBeenDisplayed = true;
 		//micOn = false;
@@ -185,6 +185,10 @@ function scheduler() {
 			console.log("End of loop, listening for the next user...");
 			audioStop();
 		}, afterWordDuration);
+	}
+	if (micOn && silenceDur > maxSilenceDur && !hasWordBeenDisplayed && particles.length === 0){
+		audioStop();
+		audioInit();
 	}
 	if (micOn && speechDur > whispersFadeStartTime && !whispers.isPlaying() && !whispersHaveBeenPlayed) {
 		console.log("Whipers are fading in...");
