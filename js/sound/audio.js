@@ -178,7 +178,7 @@ function scheduler() {
 		// START FADEOUT
 		isMasterFadingOut = true;
 		let chosenInstant = Math.floor(random(instants.length));
-		instants[chosenInstant].play(0, 1, 0.1, 0, instants[chosenInstant].duration());
+		instants[chosenInstant].play(0, 1, 0.05, 0, instants[chosenInstant].duration());
 		//master.amp(0, 5, 0);
 		// End is triggered n seconds after word is displayed
 		theEnd = setTimeout(() => {
@@ -233,7 +233,7 @@ function micFiltering(f) {
 */
 function xFade() {
 	if (speechDur >= speechFadeStartTime && speechDur <= speechFadeEndTime){
-		let vol = map(smoothSpeechDur, speechFadeStartTime, speechFadeEndTime, 1, 0.5, true);
+		let vol = map(smoothSpeechDur, speechFadeStartTime, speechFadeEndTime, 1, 0.3, true);
 		filter.amp(vol, 0.2, 0); 
 	}
 	if (speechDur >= whispersFadeStartTime && speechDur <= whispersFadeEndTime){
