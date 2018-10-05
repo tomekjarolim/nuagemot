@@ -1,10 +1,10 @@
 // particles variables
-var minRadus = 2;
+var minRadus = 5;
 var particles = [];
 var nums;
 var particleDensity = 4000;
 var noiseScale = 800;
-var maxLife = 20;
+var maxLife = 5;
 var maxSpeed = 30;
 var simulationSpeed = /*0.2*/0;
 var fadeFrame = 0;
@@ -19,7 +19,7 @@ var transpTarget = 155;
 var transpBorder = 0;
 var transpBorderTarget = 0;
 var easing = .1;
-var img;
+//var img;
 var myPixels = []; 
 var startTimer;
 var scaleVal = 5;
@@ -51,7 +51,7 @@ var ctx;
 var currentWord = "";
 var speechDuration = 0;
 var highTimer;
-var img;
+//var img;
 
 var words = ["tu voyageras loin ?","n’oublie pas le pain","vers où ?","l’espace est un doute","c’est à dire","ici je suis ailleurs","fais-moi signe","paysage","paradis (au 7ème étage)","doute","jungle","yeux","voyager",
 "déborder","ressentir","habiter","ça le fait","avoir l’air","au plaisir","à part ça","et pour cause","bien des choses","pour l’instant","ça alors","faut voir","tu parles","à d’autres","sans doute","nulle part","l’air de rien",
@@ -86,7 +86,7 @@ var nbMax = 1000;
 function preloadSketch() {
 
     myFont = loadFont('js/assets/futura_book.otf');
-    img = loadImage("js/assets/ellipse.png");
+    //img = loadImage("js/assets/ellipse.png");
 
 }
 
@@ -189,10 +189,9 @@ function drawSketch() {
             ////// create particle
             if (particles.length < nbMax && !isWord && !isTooLoud) {
 
-                //changeToLuciole = true;
-                for (var i=0; i<3; i++) {
-                    particles.push(new Particle( int(random(myPixels.length)), random(-width,-1) , 100000 , width/2 , height/2+100 ));
-                }
+                //for (var i=0; i<1; i++) {
+                particles.push(new Particle(int(Math.random() * myPixels.length), (Math.random() * (width-1))-width , 100000 , width/2 , height/2+100 ));
+                //}
             }
 
             if (!talkStarted) {
@@ -252,7 +251,7 @@ function drawSketch() {
                 if (onHighPicthEvent) {
                     if (particles[i] != null && particles[i].superParticle && particles.length < nbMax) {
                         for (let i=0; i<5; i++) {
-                            particles.push(new Particle( int(random(myPixels.length)), particles[i].depth , particles[i].depth , particles[i].pos.x, particles[i].pos.y ));
+                            //particles.push(new Particle( int(random(myPixels.length)), particles[i].depth , particles[i].depth , particles[i].pos.x, particles[i].pos.y ));
                         }
                     }   
                 }
@@ -272,7 +271,7 @@ function drawSketch() {
                         particleShape = 5;
                         particles[i].posTarget.x = 30;
                         particles[i].posTarget.y = 20;
-                        particles[i].depthTarget = random(-width,-1);
+                        particles[i].depthTarget = (Math.random() * (width-1))-width;
                         isTooLoud = false;
                     }
                 }
@@ -288,13 +287,13 @@ function drawSketch() {
 
                 if (!switchToWord) {
 
-                    radiusTarget = random(1,5);
+                    radiusTarget = (Math.random()*4)+1;
 
                     myPixels.splice(0, myPixels.length);
 
                     ctx.clearRect(0, 0, txtCanvas.width, txtCanvas.height);
 
-                    currentWord = currentWord = words[round(random(words.length))];
+                    currentWord = currentWord = words[Math.round(Math.random()*words.length)];
                     ctx.fillStyle = "#000000";
                     ctx.fillRect(0,0,txtCanvas.width, txtCanvas.height);
                     ctx.font = "40px futura";
@@ -313,7 +312,7 @@ function drawSketch() {
                     }
 
                     for(var i = 0; i < particles.length; i++){
-                        var pos = int(random(myPixels.length));
+                        var pos = int(Math.random()*myPixels.length);
                         particles[i].timerStart = millis();
                         particles[i].whitePosX = random(myPixels[pos].x*scaleVal-5,myPixels[pos].x*scaleVal+5);
                         particles[i].whitePosY = random(myPixels[pos].y*scaleVal-5,myPixels[pos].y*scaleVal+5);
@@ -361,7 +360,7 @@ function drawSketch() {
             if (onHighPicthEvent) {
                 if (particles[i] != null && particles[i].superParticle && particles.length < nbMax) {
                     for (let i=0; i<5; i++) {
-                        particles.push(new Particle( int(random(myPixels.length)), particles[i].depth , particles[i].depth , particles[i].pos.x, particles[i].pos.y ));
+                        //particles.push(new Particle( int(random(myPixels.length)), particles[i].depth , particles[i].depth , particles[i].pos.x, particles[i].pos.y ));
                     }
                 }
             }
@@ -381,7 +380,7 @@ function drawSketch() {
                     particleShape = 5;
                     particles[i].posTarget.x = 30;
                     particles[i].posTarget.y = 20;
-                    particles[i].depthTarget = random(-width,-1);
+                    particles[i].depthTarget = (Math.random() * (width-1))-width;
                     isTooLoud = false;
                 }
             }
@@ -392,6 +391,9 @@ function drawSketch() {
         if (onHighPicthEvent) onHighPicthEvent = false;
 
     }
+
+    if (freq > 400 && freq < 500) particleShape = 6;
+    if (freq > 600) particleShape = 7;
 
     translate(-width/2,-height/2,0);
     noStroke();

@@ -111,16 +111,16 @@ function audioSetup() {
 		}, audioPollFreq);
 		audioProcessorLoop.start()
 		// Whispers Player
-		const defaultDuration = 0.300; // Duration is in seconds
+		let whispersGrainDuration = 0.300; // Duration is in seconds
 		let rate = 1;
 		const whispersInterval = 0.08; // in seconds
 		whispersPlayer = new p5.SoundLoop(() => {
-			if (shouldPlayersBeOn === true) whisperFragment(defaultDuration, rate);
+			if (shouldPlayersBeOn === true) whisperFragment(whispersGrainDuration, rate);
 		}, whispersInterval);
 		// Scheduler
 		const schedulerInterval = 1;
 		schedulerLoop = new p5.SoundLoop(() => {
-			if(isSchedulerOn) scheduler()
+			if(isSchedulerOn) scheduler();
 		}, schedulerInterval);
 	}
 }
@@ -178,7 +178,7 @@ function scheduler() {
 		// START FADEOUT
 		isMasterFadingOut = true;
 		let chosenInstant = Math.floor(random(instants.length));
-		instants[chosenInstant].play(0, 1, 0.1, 0, instants[chosenInstant].duration());
+		instants[chosenInstant].play(0, 1, 0.05, 0, instants[chosenInstant].duration());
 		//master.amp(0, 5, 0);
 		// End is triggered n seconds after word is displayed
 		theEnd = setTimeout(() => {
@@ -200,8 +200,6 @@ function scheduler() {
 		shouldPlayersBeOn = true;
 		continuousWhispersTriggered = true;
 		continuousWhispers = true;
-	} else {
-		continuousWhispers = false;
 	}
 }
 
@@ -235,7 +233,7 @@ function micFiltering(f) {
 */
 function xFade() {
 	if (speechDur >= speechFadeStartTime && speechDur <= speechFadeEndTime){
-		let vol = map(smoothSpeechDur, speechFadeStartTime, speechFadeEndTime, 1, 0.5, true);
+		let vol = map(smoothSpeechDur, speechFadeStartTime, speechFadeEndTime, 1, 0.3, true);
 		filter.amp(vol, 0.2, 0); 
 	}
 	if (speechDur >= whispersFadeStartTime && speechDur <= whispersFadeEndTime){
@@ -355,26 +353,30 @@ function masterFadeOut() {
 *	To be called from a loop
 *	offset depends on whisperState
 */
-function whisperFragment(defaultDuration, rate) {
+function whisperFragment(whispersGrainDuration, rate) {
 	switch(whisperState){
 		case 0:
-			offset = Math.floor(random(14));  // -> Taha
+			offset = Math.floor(Math.random() * 14);  // -> Taha
+			whispersGrainDuration = 0.300;
 			break;
 		case 1: 
-			offset = Math.floor(random(26));  // -> Siyaiboue
+			offset = Math.floor(Math.random() * 26);  // -> Siyaiboue
+			whispersGrainDuration = 0.350;
 			break;
 		case 2:
-			offset = Math.floor(random(37));  // -> Amine
+			offset = Math.floor(Math.random() * 37);  // -> Amine
+			whispersGrainDuration = 0.400;
 			break;
 		case 3:
-			offset = Math.floor(random(54));  // -> Evelyne
+			offset = Math.floor(Math.random() * 54);  // -> Evelyne
+			whispersGrainDuration = 0.500;
 			break;
 		default:
-			offset = Math.floor(random(14));  // -> Taha (default)
+			offset = Math.floor(Math.random() * 14);  // -> Taha (default)
 			break;
 	}
 	if (freq >= 70 && freq <= 580) rate = map(freq, 70, 580, 0.8, 1.7);
-	whispers.play(0, rate, 1, offset, defaultDuration);
+	whispers.play(0, rate, 1, offset, whispersGrainDuration);
 }
 
 /*

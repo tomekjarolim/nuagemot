@@ -4,17 +4,19 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
 
     this.vel = createVector(0, 0);
 
-    if (int(random(20)) == 0) this.superParticle = true;
+    if (int(Math.random()*20) == 0) this.superParticle = true;
     else this.superParticle = false;
 
-    this.posTarget = createVector(_originX+random(-10,10),_originY);
+    if (round(Math.random()*1) == 0) this.pitchShape = 0;
+    else this.pitchShape = 1;
+
+    //this.posTarget = createVector(_originX+random(-100,100),_originY+random(-100,100));
+    this.posTarget = createVector(_originX+Math.random()*200-100,_originY+Math.random()*200-100);
     this.pos = createVector(_originX, _originY);
 
-    this.transX = 0;
-    this.transY = 0;
-
-    this.life = random(10, maxLife);
-    this.flip = int(random(0,2)) * 2 - 1;
+    this.life = Math.random() * (maxLife-10) + 10;
+    //this.flip = int(random(0,2)) * 2 - 1;
+    this.flip = int(Math.random()*2) * 2 - 1;
 
     this.torusSizeTarget = 30;
     this.torusSize = 1;
@@ -24,37 +26,42 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
     this.vangoghStart = millis();
     this.vangoghReposition = false;
 
-    this.lineSize = int(random(2,6));
+    //this.lineSize = int(random(2,6));
+    this.lineSize = int(Math.random()*6-2);
 
     // position in word
     this.whiteID = _whiteID;
-    this.whitePosX = random(myPixels[this.whiteID].x*scaleVal-5,myPixels[this.whiteID].x*scaleVal+5);
-    this.whitePosY = random(myPixels[this.whiteID].y*scaleVal-5,myPixels[this.whiteID].y*scaleVal+5);
+    //this.whitePosX = random(myPixels[this.whiteID].x*scaleVal-5,myPixels[this.whiteID].x*scaleVal+5);
+    //this.whitePosY = random(myPixels[this.whiteID].y*scaleVal-5,myPixels[this.whiteID].y*scaleVal+5);
+    this.whitePosX = (Math.random() * (myPixels[this.whiteID].x*scaleVal+5 - myPixels[this.whiteID].x*scaleVal-5)) - myPixels[this.whiteID].x*scaleVal-5;
+    this.whitePosY = (Math.random() * (myPixels[this.whiteID].y*scaleVal+5 - myPixels[this.whiteID].y*scaleVal-5)) - myPixels[this.whiteID].y*scaleVal-5;
 
     // position in escape
-    let angleB = random(TWO_PI);
-    this.posEscape = createVector(width/2 + cos(angleB) * width*1.1, height/2 + sin(angleB) * width*1.1);
+    let angleB = Math.random()*TWO_PI;
+    this.posEscape = createVector(width/2 + Math.cos(angleB) * width*1.1, height/2 + Math.sin(angleB) * width*1.1);
 
-    this.escape = int(random(3));
-    this.taille = random(minRadus);
+    this.escape = int(Math.random()*3);
+    this.taille = Math.random()*minRadus;
 
-    this.angleParticle = random(-3.14,3.14);
-    this.titlParticle = random(-3.14,3.14);
-    this.titleSpeed = floor(random(50,1000));
+    this.angleParticle = Math.random() * 6.28 - 3.14;
+    this.titlParticle = Math.random() * 6.28 - 3.14;
+    //this.titleSpeed = floor(random(50,1000));
+    this.titleSpeed = Math.floor(Math.random() * 950 + 50);
 
-    this.factorParticle = random(1,6);
+    this.factorParticle = Math.random() * 5 + 1;
 
     this.zoomTailleTarget = 10;
     this.zoomTaille = 5;
-    this.zoomTailleWord = random(1,7);
+    this.zoomTailleWord = Math.random() * 6 + 1;
 
     this.alphaTarget = map(this.zoomTailleTarget,0,30,255,3);
     this.refAlpha = this.alphaTarget;
     this.alpha = 0;
 
-    this.velo = createVector(random(-1, 1), random(-1, 1));
+    //this.velo = createVector(random(-1, 1), random(-1, 1));
+    this.velo = createVector(Math.random() * 2 -1);
     this.velo.normalize();
-    this.speedo = random(1,3);
+    this.speedo = Math.random() * 2 +1;
 
     this.timerStart = millis();
     this.timerDuration = int(random(1000));
@@ -62,23 +69,14 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
     this.depth = _depth;
     this.depthTarget = _depthTarget;
 
-    this.alphaLuciole = random(15,255);
-
+    this.alphaLuciole = Math.random() * 240 + 15;
     this.shaking = 0;
-    this.cornerRadius = 0;
-
-    this.alphaSpeed = random(1,3);
-
+    this.alphaSpeed = Math.random() * 2 + 1;
     this.scaleValue = 0;
 
-    //alpha Luciole
-    //if (changeToLuciole) {
-        let l = int(random(40));
-        this.zoomTailleTarget = l;
-        this.alphaTarget = map(l,0,40,105,3);
-    //}
-
-    //zoomTailleTarget = 0;
+    let l = int(Math.random() * 40);
+    this.zoomTailleTarget = l;
+    this.alphaTarget = map(l,0,40,105,50);
 
     // movement 1
     this.move = function(iterations){
@@ -94,12 +92,12 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
                 var angle = noise(this.posTarget.x/noiseScale, this.posTarget.y/noiseScale)*TWO_PI*noiseScale*this.flip;
                 if (isBacteria) {
                     var minAngle = map(amp, width/10, width, -angle, angle, true);
-                    this.vel.x = cos( /*(minAngle,angle)*/ random(angle-2,angle+2) );
-                    this.vel.y = sin( /*(minAngle,angle)*/ angle );
+                    this.vel.x = Math.cos( Math.random() * ( (angle+2) - (angle-2) ) - (angle-2) );
+                    this.vel.y = Math.sin( angle );
                     this.vel.mult(simulationSpeed);
                 } else {
-                    this.vel.x = cos(angle);
-                    this.vel.y = sin(angle);
+                    this.vel.x = Math.cos(angle);
+                    this.vel.y = Math.sin(angle);
                     this.vel.mult(0.2);
                 }
 
@@ -197,8 +195,8 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
 
         if (!isBacteria) {
             if (millis()-this.vangoghStart > 2000 && !this.vangoghReposition) {
-                this.posTarget.x = width/2 + cos(random(TWO_PI)) * 300;
-                this.posTarget.y = height/2 + sin(random(TWO_PI)) * 300;
+                this.posTarget.x = width/2 + Math.cos(Math.random() * TWO_PI) * 300;
+                this.posTarget.y = height/2 + Math.sin(Math.random() * TWO_PI) * 600;
                 this.vangoghReposition = true;
             }
         } 
@@ -206,10 +204,10 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
         if (isWord) {
             this.zoomTailleTarget = this.zoomTailleWord;
             this.depthTarget = 0;
-            this.factorParticle = random(1,6);
+            this.factorParticle = Math.random() * 5 + 1;
             this.scaleValue = 1;
             this.torusSizeTarget = 3;
-            this.alphaTarget = random(150,255);
+            this.alphaTarget = Math.random() * 155 + 150;
         } else this.torusSizeTarget = 30;
 
         if (isWordOver) {
@@ -219,7 +217,8 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
 
         if (particleShape == 0) { // ellipses
             if (millis()-this.torusStart > 1000) this.torusSize += (this.torusSizeTarget - this.torusSize) * 0.1;
-            fill(255,this.alpha/4);
+            if (transpBGTarget < 100) fill(255,this.alpha/4);
+            else fill(255,this.alpha/2);
             noStroke();
             translate(this.pos.x, this.pos.y);
             torus(this.torusSize, 1);
@@ -227,8 +226,8 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
 
         else if (particleShape == 1) { // ronds
             noStroke();
-            if (transpBGTarget < 100) fill(255,this.alpha/10);
-            else fill(255,this.alpha/4);
+            if (transpBGTarget < 50) fill(255,this.alpha/5);
+            else fill(255,this.alpha/2);
             ellipse(this.pos.x, this.pos.y, (r+this.zoomTaille), (r+this.zoomTaille));
         }
 
@@ -256,11 +255,44 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
             plane(r+this.zoomTaille,r+this.zoomTaille);
         }
 
-        else { // metastases
+        else if (particleShape == 5) { // metastases
             noFill();
             if (!isFlocking) stroke(255,this.alpha/4);
             else stroke(255,this.alpha/4);
             ellipse(this.pos.x, this.pos.y, (r+this.zoomTaille)*this.scaleValue, (r+this.zoomTaille)*this.scaleValue);
+        }
+
+        else if (particleShape == 6) { // lignes + carrés
+            if (this.pitchShape == 0) { // ligne
+                noStroke();
+                fill(255,this.alpha);
+                translate(this.pos.x, this.pos.y);
+                rotate(this.angleParticle/4);
+                plane((r+this.zoomTaille)*this.lineSize, 2);
+            } else { // carré
+                noStroke();
+                fill(255,this.alpha);
+                translate(this.pos.x, this.pos.y);
+                rotate(this.angleParticle/4);
+                plane((r+this.zoomTaille), (r+this.zoomTaille)); 
+            }
+        }
+
+        else if (particleShape == 7) { // lignes + cercle
+            if (this.pitchShape == 0) { // ligne
+                noStroke();
+                fill(255,this.alpha);
+                translate(this.pos.x, this.pos.y);
+                rotate(this.angleParticle/4);
+                plane((r+this.zoomTaille)*this.lineSize, 2);
+            } else { // cercle
+                if (millis()-this.torusStart > 1000) this.torusSize += (this.torusSizeTarget - this.torusSize) * 0.1;
+                if (transpBGTarget < 100) fill(255,this.alpha/4);
+                else fill(255,this.alpha/2);
+                noStroke();
+                translate(this.pos.x, this.pos.y);
+                torus(this.torusSize, 1);
+            }
         }
 
         pop();
