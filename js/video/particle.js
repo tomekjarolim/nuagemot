@@ -22,6 +22,8 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
     this.torusSize = 1;
     this.torusStart = millis();
     this.torusEasing = false;
+    this.torusSizeChanging = true;
+    this.torusEndEasingTimer;
 
     this.vangoghStart = millis();
     this.vangoghReposition = false;
@@ -216,7 +218,9 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
         }
 
         if (particleShape == 0) { // ellipses
-            if (millis()-this.torusStart > 1000) this.torusSize += (this.torusSizeTarget - this.torusSize) * 0.1;
+            if (millis()-this.torusStart > 1000) {
+                if (round(this.torusSize) == round(this.torusSize)) this.torusSize += (this.torusSizeTarget - this.torusSize) * 0.1;
+            }
             if (transpBGTarget < 100) fill(255,this.alpha/4);
             else fill(255,this.alpha/2);
             noStroke();
@@ -286,7 +290,9 @@ function Particle(_whiteID, _depthTarget, _depth, _originX, _originY){
                 rotate(this.angleParticle/4);
                 plane((r+this.zoomTaille)*this.lineSize, 2);
             } else { // cercle
-                if (millis()-this.torusStart > 1000) this.torusSize += (this.torusSizeTarget - this.torusSize) * 0.1;
+                if (millis()-this.torusStart > 1000) {
+                    if (round(this.torusSize) == round(this.torusSize)) this.torusSize += (this.torusSizeTarget - this.torusSize) * 0.1;
+                }
                 if (transpBGTarget < 100) fill(255,this.alpha/4);
                 else fill(255,this.alpha/2);
                 noStroke();
