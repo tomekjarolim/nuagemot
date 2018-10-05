@@ -200,8 +200,6 @@ function scheduler() {
 		shouldPlayersBeOn = true;
 		continuousWhispersTriggered = true;
 		continuousWhispers = true;
-	} else {
-		continuousWhispers = false;
 	}
 }
 
